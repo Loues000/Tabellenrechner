@@ -1,141 +1,711 @@
+/* ================================================================
+   page.module.css — kicker.de / fussball.de editorial style
+   ================================================================ */
+
+/* ── Page container ── */
 .page {
-  --background: #fafafa;
-  --foreground: #fff;
+  margin: 0 auto;
+  max-width: 1280px;
+  padding: 20px 16px 60px;
+}
 
-  --text-primary: #000;
-  --text-secondary: #666;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
-  display: flex;
-  min-height: 100vh;
+/* ── Info bar (replaces hero + summary cards) ── */
+.infoBar {
   align-items: center;
-  justify-content: center;
-  font-family: var(--font-geist-sans);
-  background-color: var(--background);
-}
-
-.main {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 2px;
   display: flex;
-  min-height: 100vh;
-  width: 100%;
-  max-width: 800px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
 }
 
-.intro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
+.infoBar span {
+  color: var(--text-muted);
+  font-size: 13px;
 }
 
-.intro h1 {
-  max-width: 320px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
-  text-wrap: balance;
-  color: var(--text-primary);
-}
-
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
-  color: var(--text-secondary);
-}
-
-.intro a {
+.infoBar strong {
+  color: var(--text);
+  font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
 }
 
-.ctas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
+.infoBarAccent {
+  color: var(--accent) !important;
+  font-weight: 700 !important;
+}
+
+/* ── Control grid (URL import + league search) ── */
+.controlGrid {
+  display: grid;
   gap: 16px;
-  font-size: 14px;
+  margin-bottom: 20px;
 }
 
-.ctas a {
+/* ── Panels (flat, dense) ── */
+.panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 16px;
+}
+
+.panelHeader {
+  align-items: start;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  cursor: pointer;
-  width: fit-content;
-  font-weight: 500;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
+.panelKicker {
+  color: var(--accent);
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.panelHeader h2 {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.panelText {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+/* ── Form elements ── */
+.fieldLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.textarea,
+.selectGroup select,
+.selectGroupWide select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  padding: 8px 10px;
+  transition: border-color 100ms ease;
+  width: 100%;
+}
+
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.textarea:focus,
+.selectGroup select:focus,
+.selectGroupWide select:focus {
+  border-color: var(--accent);
+}
+
+.filterGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.selectGroup,
+.selectGroupWide {
+  display: block;
+}
+
+.selectGroup span,
+.selectGroupWide span {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.selectGroupWide {
+  grid-column: 1 / -1;
+}
+
+/* ── Buttons ── */
+.inlineActions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.primaryButton,
+.secondaryButton,
+.linkButton {
+  border-radius: 2px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  justify-content: center;
+  padding: 7px 16px;
+  transition: background 100ms ease, opacity 100ms ease;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.linkButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.primaryButton {
+  background: var(--accent);
+  border: 0;
+  color: #fff;
+}
+
+.primaryButton:hover:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+.secondaryButton {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: var(--accent);
+  padding: 4px 0;
+}
+
+.linkButton:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.statusNote {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* ── Workspace (table + matches side by side) ── */
+.workspace {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+/* ── Table panel ── */
+.tablePanel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  min-width: 0;
+  padding: 0;
+}
+
+.tablePanelHeader {
+  align-items: center;
+  border-bottom: 3px solid var(--accent);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px 14px 10px;
+}
+
+.tablePanelHeader h2 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.tablePanelActions {
+  align-items: center;
+  display: flex;
   gap: 8px;
 }
 
-a.secondary {
-  border-color: var(--button-secondary-border);
+.tableWrap {
+  overflow-x: auto;
 }
 
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
+/* ── Data table ── */
+.table {
+  border-collapse: collapse;
+  min-width: 680px;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border-bottom: 1px solid var(--border-light);
+  font-size: 13px;
+  padding: 7px 8px;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.table th {
+  background: var(--bg-alt);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.table tbody tr:nth-child(even) {
+  background: var(--row-even);
+}
+
+.table tbody tr:hover {
+  background: #f0f0f0;
+}
+
+.rankCell {
+  font-weight: 700;
+  text-align: center;
+  width: 32px;
+}
+
+.teamCell {
+  font-weight: 500;
+}
+
+.pointsCell {
+  font-weight: 700;
+}
+
+.trendUp {
+  color: var(--success);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trendDown {
+  color: var(--danger);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trendFlat {
+  color: var(--text-light);
+  font-size: 12px;
+}
+
+/* ── Matches panel ── */
+.matchesPanel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.matchesPanelHeader {
+  border-bottom: 3px solid var(--accent);
+  padding: 12px 14px 10px;
+}
+
+.matchesPanelHeader h2 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.matchesPanelHint {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* ── Matchday sections ── */
+.matchdayToolbar {
+  display: grid;
+  gap: 12px;
+}
+
+.matchdayRail {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.matchdayTab {
+  background: var(--bg-alt);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  flex: 0 0 auto;
+  gap: 4px;
+  min-width: 132px;
+  padding: 10px 14px;
+  text-align: left;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+}
+
+.matchdayTab:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.matchdayTabActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.matchdayTab span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.78;
+  text-transform: uppercase;
+}
+
+.matchdayTab strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.matchdayNav {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.matchdayNavButton {
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  min-height: 36px;
+  padding: 0 14px;
+}
+
+.matchdayNavButton:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.matchdayCounter {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.matchdayCard {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.matchdayHeader {
+  align-items: start;
+  background: var(--bg-alt);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+.matchdayBadge {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.matchdayLabel {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-left: 6px;
+}
+
+.matchdayMeta {
+  color: var(--text-light);
+  font-size: 12px;
+}
+
+/* ── Match rows (compact, inline) ── */
+.matchList {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  padding: 16px;
+}
+
+.matchRow {
+  align-items: center;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  gap: 0;
+  min-height: 40px;
+  padding: 6px 14px;
+}
+
+.matchRow:last-child {
+  border-bottom: 0;
+}
+
+.matchRow:hover {
+  background: var(--row-even);
+}
+
+.matchKickoff {
+  color: var(--text-light);
+  flex: 0 0 60px;
+  font-size: 12px;
+  text-align: left;
+}
+
+.matchHome {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 8px;
+}
+
+.matchGuest {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: 8px;
+}
+
+.scoreInputGroup {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0;
+}
+
+.scoreInput {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  height: 30px;
+  outline: none;
+  text-align: center;
+  transition: border-color 100ms ease;
+  width: 36px;
+}
+
+.scoreInput:focus {
+  border-color: var(--accent);
+}
+
+.scoreInput:disabled {
+  background: var(--bg-alt);
+  color: var(--text-light);
+}
+
+.scoreColon {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 0 3px;
+}
+
+.matchOriginal {
+  color: var(--text-light);
+  flex: 0 0 50px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.matchStatus {
+  font-size: 11px;
+  flex: 0 0 70px;
+  text-align: center;
+}
+
+.matchStateReady {
+  color: var(--success);
+  font-weight: 500;
+}
+
+.matchStateOpen {
+  color: var(--text-light);
+}
+
+.matchStatePending {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.matchReset {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  flex: 0 0 24px;
+  font-size: 14px;
+  padding: 0;
+  text-align: center;
+}
+
+.matchReset:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.matchReset:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+/* ── Empty state ── */
+.emptyState {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.emptyState h2 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+/* ── Responsive breakpoints ── */
+@media (min-width: 900px) {
+  .controlGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .filterGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
-  }
-
-  .intro {
-    gap: 16px;
-  }
-
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
-  }
-
+@media (max-width: 899px) {
   .page {
-    --background: #000;
-    --foreground: #000;
+    padding-inline: 0;
+  }
 
-    --text-primary: #ededed;
-    --text-secondary: #999;
+  .panel {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
 
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
+  .tablePanel,
+  .matchesPanel {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .matchdayNav {
+    justify-content: flex-start;
+  }
+
+  .matchdayCounter {
+    order: -1;
+    width: 100%;
+  }
+
+  .matchList {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .matchRow {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px 12px;
+  }
+
+  .matchKickoff {
+    flex: 0 0 100%;
+    padding-bottom: 2px;
+  }
+
+  .matchHome {
+    text-align: left;
+    flex: 1 1 0;
+    padding-right: 4px;
+  }
+
+  .matchGuest {
+    flex: 1 1 0;
+    padding-left: 4px;
+  }
+
+  .scoreInputGroup {
+    flex: 0 0 auto;
+  }
+
+  .matchOriginal {
+    flex: 0 0 auto;
+  }
+
+  .matchStatus {
+    flex: 0 0 auto;
+  }
+
+  .infoBar {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
   }
 }

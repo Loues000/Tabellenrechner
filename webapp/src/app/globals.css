@@ -1,13 +1,16 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --bg: #ffffff;
+  --bg-alt: #f5f5f5;
+  --border: #ddd;
+  --border-light: #e8e8e8;
+  --accent: #e3001e;
+  --accent-dark: #b60019;
+  --text: #1a1a1a;
+  --text-muted: #666;
+  --text-light: #999;
+  --success: #2d7d46;
+  --danger: #c0392b;
+  --row-even: #f9f9f9;
 }
 
 html,
@@ -17,9 +20,11 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  font-family: var(--font-body), "Roboto", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -31,12 +36,65 @@ body {
 }
 
 a {
-  color: inherit;
+  color: var(--accent);
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+label,
+th {
+  font-family: var(--font-heading), "Roboto Condensed", Arial, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* ── Site header bar ── */
+
+.siteHeader {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.siteHeaderInner {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  margin: 0 auto;
+  max-width: 1280px;
+  padding: 10px 16px;
+}
+
+.siteWordmark {
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+  font-family: var(--font-heading), "Roboto Condensed", Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding-left: 8px;
+  text-transform: uppercase;
+}
+
+.siteSub {
+  color: var(--text-muted);
+  font-size: 13px;
 }
