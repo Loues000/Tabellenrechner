@@ -1,35 +1,36 @@
 /* ================================================================
    page.module.css — kicker.de / fussball.de editorial style
+   Mobile-first responsive design
    ================================================================ */
 
 /* ── Page container ── */
 .page {
   margin: 0 auto;
   max-width: 1280px;
-  padding: 20px 16px 60px;
+  padding: 12px 0 60px;
 }
 
 /* ── Info bar (replaces hero + summary cards) ── */
 .infoBar {
   align-items: center;
   background: var(--bg-alt);
-  border: 1px solid var(--border);
-  border-radius: 2px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 20px;
-  margin-bottom: 16px;
-  padding: 10px 14px;
+  gap: 4px 12px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
 }
 
 .infoBar span {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .infoBar strong {
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -41,16 +42,17 @@
 /* ── Control grid (URL import + league search) ── */
 .controlGrid {
   display: grid;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 1px;
+  margin-bottom: 12px;
+  background: var(--border);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 /* ── Panels (flat, dense) ── */
 .panel {
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 2px;
-  padding: 16px;
+  padding: 12px;
 }
 
 .panelHeader {
@@ -58,38 +60,38 @@
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .panelKicker {
   color: var(--accent);
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
   text-transform: uppercase;
 }
 
 .panelHeader h2 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
 }
 
 .panelText {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1.5;
-  margin-bottom: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 10px;
 }
 
 /* ── Form elements ── */
 .fieldLabel {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .textarea,
@@ -101,13 +103,13 @@
   color: var(--text);
   font-size: 13px;
   outline: none;
-  padding: 8px 10px;
+  padding: 7px 8px;
   transition: border-color 100ms ease;
   width: 100%;
 }
 
 .textarea {
-  min-height: 80px;
+  min-height: 60px;
   resize: vertical;
 }
 
@@ -119,7 +121,8 @@
 
 .filterGrid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .selectGroup,
@@ -130,9 +133,9 @@
 .selectGroup span,
 .selectGroupWide span {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .selectGroupWide {
@@ -144,8 +147,8 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 10px;
 }
 
 .primaryButton,
@@ -158,7 +161,7 @@
   font-size: 13px;
   font-weight: 500;
   justify-content: center;
-  padding: 7px 16px;
+  padding: 7px 14px;
   transition: background 100ms ease, opacity 100ms ease;
 }
 
@@ -208,22 +211,22 @@
 
 .error {
   color: var(--danger);
-  font-size: 13px;
-  margin-top: 8px;
+  font-size: 12px;
+  margin-top: 6px;
 }
 
-/* ── Workspace (table + matches side by side) ── */
+/* ── Workspace (table + matches, stacked on mobile, side-by-side on desktop) ── */
 .workspace {
   display: grid;
-  gap: 16px;
+  gap: 12px;
   align-items: start;
 }
 
 /* ── Table panel ── */
 .tablePanel {
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 2px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   min-width: 0;
   padding: 0;
 }
@@ -234,11 +237,11 @@
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  padding: 12px 14px 10px;
+  padding: 10px 12px 8px;
 }
 
 .tablePanelHeader h2 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -252,20 +255,20 @@
 
 .tableWrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ── Data table ── */
 .table {
   border-collapse: collapse;
-  min-width: 680px;
   width: 100%;
 }
 
 .table th,
 .table td {
   border-bottom: 1px solid var(--border-light);
-  font-size: 13px;
-  padding: 7px 8px;
+  font-size: 12px;
+  padding: 6px 5px;
   text-align: left;
   vertical-align: middle;
   white-space: nowrap;
@@ -274,7 +277,7 @@
 .table th {
   background: var(--bg-alt);
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -291,52 +294,60 @@
 .rankCell {
   font-weight: 700;
   text-align: center;
-  width: 32px;
+  width: 26px;
 }
 
 .teamCell {
   font-weight: 500;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pointsCell {
   font-weight: 700;
 }
 
+/* Columns that can be hidden on small screens */
+.colHideable {
+  display: table-cell;
+}
+
 .trendUp {
   color: var(--success);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .trendDown {
   color: var(--danger);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
 .trendFlat {
   color: var(--text-light);
-  font-size: 12px;
+  font-size: 11px;
 }
 
 /* ── Matches panel ── */
 .matchesPanel {
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 2px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   display: grid;
-  gap: 14px;
+  gap: 0;
   min-width: 0;
-  padding: 14px;
+  padding: 0;
 }
 
 .matchesPanelHeader {
   border-bottom: 3px solid var(--accent);
-  padding: 12px 14px 10px;
+  padding: 10px 12px 8px;
 }
 
 .matchesPanelHeader h2 {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -344,35 +355,38 @@
 
 .matchesPanelHint {
   color: var(--text-muted);
-  font-size: 12px;
-  margin-top: 4px;
+  font-size: 11px;
+  margin-top: 3px;
 }
 
 /* ── Matchday sections ── */
 .matchdayToolbar {
   display: grid;
-  gap: 12px;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .matchdayRail {
   display: flex;
-  gap: 10px;
+  gap: 6px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding: 8px 12px;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .matchdayTab {
   background: var(--bg-alt);
   border: 1px solid var(--border-light);
-  border-radius: 14px;
+  border-radius: 12px;
   color: var(--text);
   cursor: pointer;
   display: grid;
   flex: 0 0 auto;
-  gap: 4px;
-  min-width: 132px;
-  padding: 10px 14px;
+  gap: 1px;
+  min-width: 100px;
+  padding: 7px 10px;
   text-align: left;
   transition:
     border-color 120ms ease,
@@ -393,7 +407,7 @@
 }
 
 .matchdayTab span {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
   opacity: 0.78;
@@ -401,16 +415,16 @@
 }
 
 .matchdayTab strong {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .matchdayNav {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px;
   justify-content: space-between;
+  padding: 6px 12px;
 }
 
 .matchdayNavButton {
@@ -419,8 +433,11 @@
   border-radius: 999px;
   color: var(--text);
   cursor: pointer;
-  min-height: 36px;
-  padding: 0 14px;
+  font-size: 12px;
+  min-height: 32px;
+  padding: 0 12px;
+  /* Bigger touch target */
+  min-width: 80px;
 }
 
 .matchdayNavButton:disabled {
@@ -430,31 +447,30 @@
 
 .matchdayCounter {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
+  text-align: center;
   text-transform: uppercase;
 }
 
 .matchdayCard {
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  overflow: hidden;
 }
 
 .matchdayHeader {
-  align-items: start;
+  align-items: center;
   background: var(--bg-alt);
   display: flex;
   gap: 12px;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-light);
 }
 
 .matchdayBadge {
   color: var(--text);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -462,30 +478,32 @@
 
 .matchdayLabel {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11px;
   margin-left: 6px;
 }
 
 .matchdayMeta {
   color: var(--text-light);
-  font-size: 12px;
+  font-size: 11px;
 }
 
-/* ── Match rows (compact, inline) ── */
+/* ── Match rows ── */
+/* Mobile-first: each match row is a 3-part layout:
+   [Kickoff] [Home] [Score] [Guest] [Reset] */
 .matchList {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  padding: 16px;
+  gap: 0;
 }
 
 .matchRow {
   align-items: center;
   border-bottom: 1px solid var(--border-light);
-  display: flex;
-  gap: 0;
+  display: grid;
+  /* kickoff | home | score | guest | status | reset */
+  grid-template-columns: 46px 1fr auto 1fr auto auto;
   min-height: 40px;
-  padding: 6px 14px;
+  padding: 5px 10px;
+  gap: 0 4px;
 }
 
 .matchRow:last-child {
@@ -498,30 +516,30 @@
 
 .matchKickoff {
   color: var(--text-light);
-  flex: 0 0 60px;
-  font-size: 12px;
+  font-size: 11px;
   text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .matchHome {
-  flex: 1;
   font-size: 13px;
   font-weight: 500;
   overflow: hidden;
   text-align: right;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-right: 8px;
+  padding-right: 6px;
 }
 
 .matchGuest {
-  flex: 1;
   font-size: 13px;
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding-left: 8px;
+  padding-left: 6px;
 }
 
 .scoreInputGroup {
@@ -536,13 +554,13 @@
   border: 1px solid var(--border);
   border-radius: 2px;
   color: var(--text);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  height: 30px;
+  height: 28px;
   outline: none;
   text-align: center;
   transition: border-color 100ms ease;
-  width: 36px;
+  width: 30px;
 }
 
 .scoreInput:focus {
@@ -556,21 +574,22 @@
 
 .scoreColon {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  padding: 0 3px;
+  padding: 0 2px;
 }
 
+/* Original result badge — hidden on mobile, shown on wider screens */
 .matchOriginal {
   color: var(--text-light);
-  flex: 0 0 50px;
-  font-size: 12px;
+  font-size: 11px;
   text-align: center;
+  display: none;
 }
 
 .matchStatus {
   font-size: 11px;
-  flex: 0 0 70px;
+  width: 20px;
   text-align: center;
 }
 
@@ -593,10 +612,15 @@
   border: none;
   color: var(--text-light);
   cursor: pointer;
-  flex: 0 0 24px;
-  font-size: 14px;
-  padding: 0;
+  font-size: 13px;
+  padding: 4px;
   text-align: center;
+  /* generous tap target */
+  min-width: 28px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .matchReset:hover:not(:disabled) {
@@ -613,6 +637,7 @@
   color: var(--text-muted);
   font-size: 13px;
   margin-top: 20px;
+  padding: 0 12px;
   text-align: center;
 }
 
@@ -622,90 +647,230 @@
   margin-bottom: 4px;
 }
 
-/* ── Responsive breakpoints ── */
+/* ================================================================
+   RESPONSIVE BREAKPOINTS
+   ================================================================ */
+
+/* ── Tiny mobile only (< 500px): hide S/U/N columns ── */
+@media (max-width: 499px) {
+  .colHideable {
+    display: none;
+  }
+}
+
+/* ── Tablet / small desktop (≥ 640px) ── */
+@media (min-width: 640px) {
+  .page {
+    padding: 16px 0 60px;
+  }
+
+  .matchOriginal {
+    display: block;
+    flex: 0 0 46px;
+  }
+
+  .matchRow {
+    grid-template-columns: 54px 1fr auto 1fr 46px auto auto;
+    padding: 5px 12px;
+  }
+
+  .scoreInput {
+    width: 34px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+  .matchdayTab {
+    min-width: 115px;
+    padding: 8px 12px;
+  }
+
+  .matchdayTab span {
+    font-size: 11px;
+  }
+
+  .matchdayTab strong {
+    font-size: 13px;
+  }
+}
+
+/* ── Desktop (≥ 900px) ── */
 @media (min-width: 900px) {
+  .page {
+    padding: 20px 16px 60px;
+  }
+
   .controlGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    background: transparent;
+    gap: 16px;
+    border: none;
+  }
+
+  .panel {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 16px;
   }
 
   .workspace {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .tablePanel {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .matchesPanel {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .infoBar {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    gap: 6px 20px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+
+  .infoBar span,
+  .infoBar strong {
+    font-size: 13px;
+  }
+
+  .tablePanelHeader {
+    padding: 12px 14px 10px;
+  }
+
+  .tablePanelHeader h2 {
+    font-size: 14px;
+  }
+
+  .matchesPanelHeader {
+    padding: 12px 14px 10px;
+  }
+
+  .matchesPanelHeader h2 {
+    font-size: 14px;
+  }
+
+  .table th,
+  .table td {
+    font-size: 13px;
+    padding: 7px 8px;
+  }
+
+  .table th {
+    font-size: 11px;
+  }
+
+  .teamCell {
+    max-width: none;
+  }
+
+  .matchdayRail {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+
+  .matchdayNav {
+    padding: 8px 14px;
+  }
+
+  .matchdayNavButton {
+    min-height: 36px;
+    padding: 0 14px;
+  }
+
+  .matchdayHeader {
+    padding: 14px 16px;
+  }
+
+  .matchdayBadge {
+    font-size: 11px;
+  }
+
+  .matchList {
+    gap: 0;
+  }
+
+  .matchRow {
+    grid-template-columns: 60px 1fr auto 1fr 50px auto auto;
+    padding: 6px 14px;
+    min-height: 42px;
+  }
+
+  .matchKickoff {
+    font-size: 12px;
+    flex: 0 0 60px;
+  }
+
+  .matchHome {
+    font-size: 13px;
+    padding-right: 8px;
+  }
+
+  .matchGuest {
+    font-size: 13px;
+    padding-left: 8px;
+  }
+
+  .matchOriginal {
+    display: block;
+    flex: 0 0 50px;
+    font-size: 12px;
+  }
+
+  .matchStatus {
+    width: 70px;
+  }
+
+  .panelText {
+    font-size: 13px;
+  }
+
+  .panelHeader h2 {
+    font-size: 16px;
+  }
+
+  .panelKicker {
+    font-size: 11px;
+  }
+
+  .selectGroup span,
+  .selectGroupWide span {
+    font-size: 12px;
   }
 
   .filterGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .fieldLabel {
+    font-size: 12px;
   }
 }
 
-@media (max-width: 899px) {
-  .page {
-    padding-inline: 0;
+/* ── Wide desktop (≥ 1100px) ── */
+@media (min-width: 1100px) {
+  .filterGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .panel {
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
+  .matchdayTab {
+    min-width: 132px;
+    padding: 10px 14px;
   }
 
-  .tablePanel,
-  .matchesPanel {
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
+  .matchdayTab span {
+    font-size: 11px;
   }
 
-  .matchdayNav {
-    justify-content: flex-start;
-  }
-
-  .matchdayCounter {
-    order: -1;
-    width: 100%;
-  }
-
-  .matchList {
-    grid-template-columns: 1fr;
-    padding: 14px;
-  }
-
-  .matchRow {
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 8px 12px;
-  }
-
-  .matchKickoff {
-    flex: 0 0 100%;
-    padding-bottom: 2px;
-  }
-
-  .matchHome {
-    text-align: left;
-    flex: 1 1 0;
-    padding-right: 4px;
-  }
-
-  .matchGuest {
-    flex: 1 1 0;
-    padding-left: 4px;
-  }
-
-  .scoreInputGroup {
-    flex: 0 0 auto;
-  }
-
-  .matchOriginal {
-    flex: 0 0 auto;
-  }
-
-  .matchStatus {
-    flex: 0 0 auto;
-  }
-
-  .infoBar {
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
+  .matchdayTab strong {
+    font-size: 14px;
   }
 }

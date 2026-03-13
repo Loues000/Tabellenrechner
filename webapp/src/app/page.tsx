@@ -282,7 +282,7 @@ export default function Home() {
             className={styles.textarea}
             value={urlInput}
             onChange={(event) => setUrlInput(event.target.value)}
-            rows={3}
+            rows={2}
             placeholder="https://www.fussball.de/spieltag/.../staffel/..."
           />
           <div className={styles.inlineActions}>
@@ -424,12 +424,12 @@ export default function Home() {
                       <th>Pl.</th>
                       <th>Vereine</th>
                       <th>Sp.</th>
-                      <th>S</th>
-                      <th>U</th>
-                      <th>N</th>
+                      <th className={styles.colHideable} title="Siege">S</th>
+                      <th className={styles.colHideable} title="Unentschieden">U</th>
+                      <th className={styles.colHideable} title="Niederlagen">N</th>
                       <th>Tore</th>
-                      <th>Diff.</th>
-                      <th>Punkte</th>
+                      <th>+/-</th>
+                      <th>Pkt.</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -441,9 +441,9 @@ export default function Home() {
                           <td className={styles.rankCell}>{row.rank}.</td>
                           <td className={styles.teamCell}>{row.teamName}</td>
                           <td>{row.games}</td>
-                          <td>{row.wins}</td>
-                          <td>{row.draws}</td>
-                          <td>{row.losses}</td>
+                          <td className={styles.colHideable}>{row.wins}</td>
+                          <td className={styles.colHideable}>{row.draws}</td>
+                          <td className={styles.colHideable}>{row.losses}</td>
                           <td>{row.goalsFor}:{row.goalsAgainst}</td>
                           <td>{signedDelta(row.goalDifference)}</td>
                           <td className={styles.pointsCell}>{row.points}</td>
