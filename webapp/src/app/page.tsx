@@ -509,8 +509,10 @@ export default function Home() {
                   <button
                     className={styles.matchdayNavButton}
                     onClick={() =>
-                      activeMatchdayIndex > 0 &&
-                      setActiveMatchdayNumber(competition.matchdays[activeMatchdayIndex - 1].number)
+                      normalizedActiveMatchdayIndex > 0 &&
+                      setActiveMatchdayNumber(
+                        competition.matchdays[normalizedActiveMatchdayIndex - 1].number,
+                      )
                     }
                     disabled={normalizedActiveMatchdayIndex <= 0}
                     type="button"
@@ -523,9 +525,11 @@ export default function Home() {
                   <button
                     className={styles.matchdayNavButton}
                     onClick={() =>
-                      activeMatchdayIndex >= 0 &&
-                      activeMatchdayIndex < competition.matchdays.length - 1 &&
-                      setActiveMatchdayNumber(competition.matchdays[activeMatchdayIndex + 1].number)
+                      normalizedActiveMatchdayIndex >= 0 &&
+                      normalizedActiveMatchdayIndex < competition.matchdays.length - 1 &&
+                      setActiveMatchdayNumber(
+                        competition.matchdays[normalizedActiveMatchdayIndex + 1].number,
+                      )
                     }
                     disabled={normalizedActiveMatchdayIndex >= competition.matchdays.length - 1}
                     type="button"
