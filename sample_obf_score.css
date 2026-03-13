@@ -1,0 +1,10 @@
+@font-face {
+	font-family: font-hlb57pse;
+	src: 
+		url('//www.fussball.de/export.fontface/-/format/woff/id/hlb57pse/type/font') format('woff'),
+		url('//www.fussball.de/export.fontface/-/format/ttf/id/hlb57pse/type/font') format('truetype');
+}
+
+.results-c-hlb57pse {
+	font-family: font-hlb57pse !important;
+}
