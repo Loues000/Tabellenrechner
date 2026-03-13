@@ -39,6 +39,7 @@ export default function Home() {
   const [selectedCompetitionUrl, setSelectedCompetitionUrl] = useState("");
   const [urlInput, setUrlInput] = useState(SAMPLE_URL);
   const [competition, setCompetition] = useState<Competition | null>(null);
+  const [activeMatchdayNumber, setActiveMatchdayNumber] = useState<number | null>(null);
   const [editedResults, setEditedResults] = useState<EditableResultMap>({});
   const [searchError, setSearchError] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -64,6 +65,22 @@ export default function Home() {
   useEffect(() => {
     bootstrapOnMount();
   }, []);
+
+  useEffect(() => {
+    if (!competition) {
+      setActiveMatchdayNumber(null);
+      return;
+    }
+
+    const defaultMatchday =
+      competition.matchdays.find((matchday) =>
+        matchday.matches.some(
+          (match) => match.originalResult.home === null || match.originalResult.guest === null,
+        ),
+      ) ?? competition.matchdays[0];
+
+    setActiveMatchdayNumber(defaultMatchday?.number ?? null);
+  }, [competition]);
 
   async function loadBootstrap(partial: Partial<SearchFilters>) {
     setIsBootstrapping(true);
@@ -228,6 +245,19 @@ export default function Home() {
         );
       }, 0)
     : 0;
+  const activeMatchdayIndex = competition
+    ? competition.matchdays.findIndex((matchday) => matchday.number === activeMatchdayNumber)
+    : -1;
+  const normalizedActiveMatchdayIndex =
+    competition && competition.matchdays.length
+      ? activeMatchdayIndex >= 0
+        ? activeMatchdayIndex
+        : 0
+      : -1;
+  const activeMatchday =
+    competition && normalizedActiveMatchdayIndex >= 0
+      ? competition.matchdays[normalizedActiveMatchdayIndex]
+      : null;
 
   return (
     <main className={styles.page}>
@@ -447,13 +477,75 @@ export default function Home() {
               <div className={styles.matchesPanelHeader}>
                 <h2>Spielpaarungen</h2>
                 <p className={styles.matchesPanelHint}>
-                  Ergebnisse eingeben oder ueberschreiben. Leere Felder entfernen den Tipp.
+                  Spieltag waehlen, durchklicken und Ergebnisse direkt anpassen. Leere Felder
+                  entfernen den Tipp.
                 </p>
               </div>
 
+              <div className={styles.matchdayToolbar}>
+                <div className={styles.matchdayRail} role="tablist" aria-label="Spieltage">
+                  {competition.matchdays.map((matchday) => {
+                    const isActive = matchday.number === activeMatchday?.number;
+
+                    return (
+                      <button
+                        key={matchday.number}
+                        id={`matchday-tab-${matchday.number}`}
+                        className={`${styles.matchdayTab} ${isActive ? styles.matchdayTabActive : ""}`}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        aria-controls={`matchday-panel-${matchday.number}`}
+                        onClick={() => setActiveMatchdayNumber(matchday.number)}
+                      >
+                        <span>{matchday.number}. Spieltag</span>
+                        <strong>{matchday.matches.length} Partien</strong>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className={styles.matchdayNav}>
+                  <button
+                    className={styles.matchdayNavButton}
+                    onClick={() =>
+                      activeMatchdayIndex > 0 &&
+                      setActiveMatchdayNumber(competition.matchdays[activeMatchdayIndex - 1].number)
+                    }
+                    disabled={normalizedActiveMatchdayIndex <= 0}
+                    type="button"
+                  >
+                    Vorheriger
+                  </button>
+                  <span className={styles.matchdayCounter}>
+                    {normalizedActiveMatchdayIndex + 1} / {competition.matchdays.length}
+                  </span>
+                  <button
+                    className={styles.matchdayNavButton}
+                    onClick={() =>
+                      activeMatchdayIndex >= 0 &&
+                      activeMatchdayIndex < competition.matchdays.length - 1 &&
+                      setActiveMatchdayNumber(competition.matchdays[activeMatchdayIndex + 1].number)
+                    }
+                    disabled={normalizedActiveMatchdayIndex >= competition.matchdays.length - 1}
+                    type="button"
+                  >
+                    Naechster
+                  </button>
+                </div>
+              </div>
+
               <div className={styles.matchdayList}>
-                {competition.matchdays.map((matchday) => (
-                  <section key={matchday.number} className={styles.matchdayCard}>
+                {competition.matchdays
+                  .filter((matchday) => matchday.number === activeMatchday?.number)
+                  .map((matchday) => (
+                  <section
+                    key={matchday.number}
+                    id={`matchday-panel-${matchday.number}`}
+                    className={styles.matchdayCard}
+                    role="tabpanel"
+                    aria-labelledby={`matchday-tab-${matchday.number}`}
+                  >
                     <div className={styles.matchdayHeader}>
                       <div>
                         <span className={styles.matchdayBadge}>{matchday.number}. Spieltag</span>
