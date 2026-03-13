@@ -1,0 +1,11 @@
+{
+  "name": "tabellenrechner",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix webapp run dev",
+    "build": "npm --prefix webapp run build",
+    "start": "npm --prefix webapp run start",
+    "lint": "npm --prefix webapp run lint",
+    "test": "npm --prefix webapp run test"
+  }
+}

@@ -1,0 +1,29 @@
+# dependencies
+/webapp/node_modules
+
+# Next.js build output
+/webapp/.next
+/webapp/out
+
+# coverage and build artifacts
+/webapp/coverage
+/webapp/build
+
+# environment and local settings
+/webapp/.env*
+.env*
+.DS_Store
+Thumbs.db
+
+# package manager and debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# deployment and TypeScript
+/webapp/.vercel
+/webapp/*.tsbuildinfo
+
+# local reverse-engineering samples
+/sample_*
