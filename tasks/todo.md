@@ -11,3 +11,17 @@
 - [x] Add a root README with setup, architecture, and usage notes.
 - [x] Make Spieltage horizontally selectable with click-through navigation instead of stacking all matchdays vertically.
 - [x] Split the current repository state into a sensible initial commit history.
+- [x] Complete mobile optimizations (compact tabs, hidden columns, stacked match list) for a responsive kicker-like view.
+- [x] Show the current spieltag first in the matchday navigation instead of always starting with matchday 1.
+- [x] Harden the WAM search bootstrap against transient upstream failures and empty filter branches.
+- [x] Replace `ae`/`oe`/`ue` placeholders with real umlauts in German UI copy and error messages.
+- [x] Replace duplicate Spieltag header labels with derived date summaries that handle multiple match dates.
+- [x] Make the mobile URL import less prominent by moving it behind a button dialog.
+- [x] Rework the compact competition info bar to avoid redundant region labels and improve readability.
+- [x] Keep Spieltag 1 on the right, auto-scroll the rail to the current Spieltag, and restore desktop scrolling in the selector.
+- [x] Keep the desktop league search fully editable and collapse only the optional URL import into a quick-open summary.
+- [x] Show team logos from the imported original table in the Tabellenansicht.
+- [x] Add a small release footer with GitHub repo and issue-report links.
+- [x] Convert the footer links into SVG icon buttons.
+- [ ] Polish the Tabellenrechner UI based on user feedback: clearer mobile scroll cues, improved German copy, and stronger loading states.
+- [ ] Add table and matchlist affordances for truncated content, trend explanation, withdrawn-team hints, dark mode, and CSV export.
