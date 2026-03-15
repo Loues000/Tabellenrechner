@@ -84,6 +84,23 @@ type MatchdayRailDragState = {
   hasDragged: boolean;
 };
 
+function FussballDeIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 18 18">
+      <rect x="0.75" y="0.75" width="16.5" height="16.5" rx="4" fill="var(--accent)" />
+      <path
+        d="M4.75 4.75h8.5v8.5h-8.5zM9 4.75v8.5M4.75 9h8.5M6.4 6.3c.8.45 1.7.68 2.6.68s1.8-.23 2.6-.68M6.4 11.7c.8-.45 1.7-.68 2.6-.68s1.8.23 2.6.68"
+        fill="none"
+        stroke="#fff"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.1"
+      />
+      <circle cx="9" cy="9" r="1.4" fill="none" stroke="#fff" strokeWidth="1.1" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const matchdayRailRef = useRef<HTMLDivElement | null>(null);
   const matchdayTabRefs = useRef<Record<number, HTMLButtonElement | null>>({});
@@ -715,7 +732,22 @@ export default function Home() {
           <div className={styles.infoBar}>
             <div className={styles.infoBarBlock}>
               <span className={styles.infoBarLabel}>Wettbewerb</span>
-              <strong className={styles.infoBarValue}>{competition.name}</strong>
+              <div className={styles.infoBarHeadingRow}>
+                <strong className={styles.infoBarValue}>{competition.name}</strong>
+                <a
+                  className={styles.competitionSourceLink}
+                  href={competition.sourceCompetitionUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={`${competition.name} bei fussball.de oeffnen`}
+                  title="Wettbewerb bei fussball.de oeffnen"
+                >
+                  <span className={styles.competitionSourceBadge}>
+                    <FussballDeIcon />
+                  </span>
+                  <span className={styles.competitionSourceText}>fussball.de</span>
+                </a>
+              </div>
               <span className={styles.infoBarMeta}>{competitionMeta}</span>
             </div>
             <div className={styles.infoBarBlock}>
