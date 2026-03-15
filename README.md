@@ -85,6 +85,29 @@ GitHub Pages can only serve static files from the repository. The actual Tabelle
 
 This repository now includes a root `index.html` so a Pages site based on `master/(root)` shows a proper landing page instead of rendering the README. For the live importer app itself, use a server-capable platform such as Vercel, Railway, Render, or another Node.js host.
 
+## Deploy On Vercel
+
+Current Vercel setup for this repository:
+
+- Import the GitHub repository as a new Vercel project.
+- Set the Root Directory to `webapp`.
+- Leave Framework Preset on `Next.js` so Vercel auto-detects the app.
+- The app pins `Node.js 20.x` in [`webapp/package.json`](./webapp/package.json) to match the tested local setup.
+
+Direct project creation link:
+
+```text
+https://vercel.com/new/clone?repository-url=https://github.com/Loues000/Tabellenrechner&root-directory=webapp
+```
+
+If you prefer the CLI, link the monorepo from the repository root and select the `webapp` project:
+
+```bash
+npm install -g vercel
+vercel link --repo
+vercel
+```
+
 ## How It Works
 
 1. The UI either accepts a competition URL or loads filter defaults from `fussball.de/wam_base.json` and related WAM JSON endpoints.

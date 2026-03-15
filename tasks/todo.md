@@ -26,5 +26,6 @@
 - [x] Reorganize the repository layout so sample `fussball.de` fixtures live in a dedicated folder tree instead of the repo root.
 - [x] Harden URL imports, table baseline integrity, font-cache recovery, and score-input accessibility.
 - [x] Add a GitHub Pages landing page and document that the live Next.js importer needs a server-capable host.
+- [x] Prepare the repo for Vercel deployment with explicit `webapp` root-directory guidance and pinned Node major version.
 - [ ] Polish the Tabellenrechner UI based on user feedback: clearer mobile scroll cues, improved German copy, and stronger loading states.
 - [ ] Add table and matchlist affordances for truncated content, trend explanation, withdrawn-team hints, dark mode, and CSV export.
