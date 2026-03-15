@@ -82,12 +82,12 @@ function normalizeCompetitionImportUrl(input: string): { candidateUrls: string[]
   try {
     parsedUrl = new URL(input.trim());
   } catch {
-    throw new CompetitionImportError("Die Wettbewerbs-URL ist ungueltig.", 400);
+    throw new CompetitionImportError("Die Wettbewerbs-URL ist ungültig.", 400);
   }
 
   if (!SUPPORTED_IMPORT_HOSTS.has(parsedUrl.hostname.toLowerCase())) {
     throw new CompetitionImportError(
-      "Es werden nur Wettbewerbs-URLs von fussball.de und next.fussball.de unterstuetzt.",
+      "Es werden nur Wettbewerbs-URLs von fussball.de und next.fussball.de unterstützt.",
       400,
     );
   }
@@ -159,6 +159,24 @@ function parseTeamId(url: string): string {
 
 function parseMatchId(url: string): string {
   return url.match(/\/spiel\/([^/?]+)/)?.[1] ?? url;
+}
+
+function ensureUniqueMatchIds(matches: ImportedMatch[]): ImportedMatch[] {
+  const seenIds = new Map<string, number>();
+
+  return matches.map((match) => {
+    const collisionCount = seenIds.get(match.id) ?? 0;
+    seenIds.set(match.id, collisionCount + 1);
+
+    if (collisionCount === 0) {
+      return match;
+    }
+
+    return {
+      ...match,
+      id: `${match.id}__dup${collisionCount + 1}`,
+    };
+  });
 }
 
 function parseTeamLogoUrl(node: Cheerio<AnyNode>): string | undefined {
@@ -265,7 +283,7 @@ function parseScoreValue(value: string): number | null {
   return Number.parseInt(trimmed, 10);
 }
 
-async function parseMatchRow($: CheerioAPI, row: AnyNode, matchday: number) {
+async function parseMatchRow($: CheerioAPI, row: AnyNode, matchday: number, rowIndex: number) {
   const $row = $(row);
   const homeLink = $row.find("td.column-club").first().find("a").first();
   const guestCell = $row.find("td.column-club.no-border").first();
@@ -283,6 +301,10 @@ async function parseMatchRow($: CheerioAPI, row: AnyNode, matchday: number) {
   const decodedScore = await decodeNodeText($row.find("td.column-score").first());
   const decodedKickoff = await decodeNodeText($row.find("td.column-date").first());
   const isBye = guestTeamName.toLowerCase() === "spielfrei";
+  const homeTeamId = parseTeamId(homeLink.attr("href") ?? homeTeamName);
+  const guestTeamId = guestLink.length
+    ? parseTeamId(guestLink.attr("href") ?? guestTeamName)
+    : `${homeTeamId}-bye`;
   const [homeScoreRaw, guestScoreRaw] = decodedScore.split(":");
   const result: MatchResult = isBye
     ? { home: null, guest: null }
@@ -294,14 +316,12 @@ async function parseMatchRow($: CheerioAPI, row: AnyNode, matchday: number) {
   return {
     id: detailLink.length
       ? parseMatchId(detailLink.attr("href") ?? homeTeamName)
-      : `${matchday}-${homeTeamName}-${guestTeamName}`,
+      : `${matchday}-${rowIndex}-${homeTeamId}-${guestTeamId}`,
     matchday,
     kickoffText: decodedKickoff,
-    homeTeamId: parseTeamId(homeLink.attr("href") ?? homeTeamName),
+    homeTeamId,
     homeTeamName,
-    guestTeamId: guestLink.length
-      ? parseTeamId(guestLink.attr("href") ?? guestTeamName)
-      : `${homeTeamName}-bye`,
+    guestTeamId,
     guestTeamName,
     detailUrl: absoluteUrl(detailLink.attr("href")),
     originalResult: result,
@@ -314,8 +334,8 @@ async function parseMatches($: CheerioAPI, matchday: number): Promise<ImportedMa
     .toArray()
     .filter((row) => $(row).find("td.column-club").length > 0);
 
-  const matches = await Promise.all(candidates.map((row) => parseMatchRow($, row, matchday)));
-  return matches.filter((match): match is ImportedMatch => Boolean(match));
+  const matches = await Promise.all(candidates.map((row, index) => parseMatchRow($, row, matchday, index)));
+  return ensureUniqueMatchIds(matches.filter((match): match is ImportedMatch => Boolean(match)));
 }
 
 async function withConcurrency<T, R>(

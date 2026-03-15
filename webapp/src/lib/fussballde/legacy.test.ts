@@ -9,6 +9,74 @@ vi.mock("@/lib/fussballde/font-decoder", () => ({
 import { loadCompetitionFromUrl } from "./legacy";
 
 const sampleLegacyHtml = readFileSync(new URL("../../../../samples/fussballde/html/legacy.html", import.meta.url), "utf8");
+const duplicateByeHtml = `
+  <html>
+    <body>
+      <script>
+        edWettbewerbId='TESTCOMP';
+        edWettbewerbName='Testliga';
+        edSaison='2526';
+        edVerbandName='Niederrhein';
+        edMannschaftsartName='Herren';
+        edSpielklasseName='Kreisliga B';
+        edGebietName='Kreis Essen';
+        edWettbewerbUrl='/wettbewerb/test/staffel/TESTCOMP';
+      </script>
+      <select name="spieltag">
+        <option selected data-href="/spieltag/test/staffel/TESTCOMP/spieltag/1">1. Spieltag</option>
+      </select>
+      <table id="fixture-league-tables">
+        <tbody>
+          <tr>
+            <td class="column-rank">1</td>
+            <td class="column-club">
+              <a href="/mannschaft/team-a/team-id/TEAMA">
+                <div class="club-logo"><img src="/logo-a.png" /></div>
+                <div class="club-name">Team A</div>
+              </a>
+            </td>
+            <td></td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0</td>
+            <td>0:0</td>
+            <td>0</td>
+            <td>0</td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="table table-striped table-full-width thead">
+        <tbody>
+          <tr>
+            <td class="column-date"></td>
+            <td class="column-club">
+              <a href="/mannschaft/team-a/team-id/TEAMA" class="club-wrapper">
+                <div class="club-name">Team A</div>
+              </a>
+            </td>
+            <td class="strong no-border no-padding">:</td>
+            <td class="column-club no-border"><span class="info-text">spielfrei</span></td>
+            <td class="column-score"></td>
+            <td class="column-detail"></td>
+          </tr>
+          <tr>
+            <td class="column-date"></td>
+            <td class="column-club">
+              <a href="/mannschaft/team-a/team-id/TEAMA" class="club-wrapper">
+                <div class="club-name">Team A</div>
+              </a>
+            </td>
+            <td class="strong no-border no-padding">:</td>
+            <td class="column-club no-border"><span class="info-text">spielfrei</span></td>
+            <td class="column-score"></td>
+            <td class="column-detail"></td>
+          </tr>
+        </tbody>
+      </table>
+    </body>
+  </html>
+`;
 
 describe("loadCompetitionFromUrl", () => {
   const fetchMock = vi.fn<typeof fetch>();
@@ -65,5 +133,17 @@ describe("loadCompetitionFromUrl", () => {
     );
 
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps repeated bye fixtures uniquely addressable", async () => {
+    fetchMock.mockImplementation(async () => new Response(duplicateByeHtml, { status: 200 }));
+
+    const competition = await loadCompetitionFromUrl(
+      "https://www.fussball.de/spieltag/test/staffel/TESTCOMP#!/",
+    );
+    const ids = competition.matchdays[0]?.matches.map((match) => match.id) ?? [];
+
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
