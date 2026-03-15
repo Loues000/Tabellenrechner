@@ -24,10 +24,21 @@
 - [x] Add a small release footer with GitHub repo and issue-report links.
 - [x] Convert the footer links into SVG icon buttons.
 - [x] Add a grab-and-drag mouse interaction to the Spieltage rail.
+- [x] Stop page scrolling from chaining while wheel or touch gestures are used on the Spieltage rail.
+- [x] Audit remaining German UI and error texts for broken or placeholder umlauts.
+- [x] Remove duplicate matchday dates by moving multi-date labels into inline date split rows.
 - [x] Reorganize the repository layout so sample `fussball.de` fixtures live in a dedicated folder tree instead of the repo root.
 - [x] Harden URL imports, table baseline integrity, font-cache recovery, and score-input accessibility.
 - [x] Add a GitHub Pages landing page and document that the live Next.js importer needs a server-capable host.
 - [x] Prepare the repo for Vercel deployment with explicit `webapp` root-directory guidance and pinned Node major version.
 - [x] Add a direct `fussball.de` link for the currently selected competition in the compact info bar.
-- [ ] Polish the Tabellenrechner UI based on user feedback: clearer mobile scroll cues, improved German copy, and stronger loading states.
+- [x] Refresh the README and structure notes now that production runs on Vercel instead of the old GitHub Pages placeholder.
+- [x] Polish mobile table headers, compact filter dropdown labels, and table reset emphasis.
+- [x] Replace the app favicon with the leaderboard-star SVG via the Next.js `app/icon.svg` convention.
+- [x] Simplify the mobile table card header by removing the redundant original-link action and unsticking the reset control.
+- [x] Keep imported match IDs unique even when fussball.de emits repeated `spielfrei` rows without detail links.
+- [x] Center the mobile Direktimport dialog reliably within the viewport.
+- [x] Reduce the mobile competition info density and make the `fussball.de` source clearly tappable.
+- [x] Flatten the competition source link styling and remove the redundant `Wettbewerb` label.
+- [x] Polish the Tabellenrechner UI (redundancy cleanup, user-friendly copy).
 - [ ] Add table and matchlist affordances for truncated content, trend explanation, withdrawn-team hints, dark mode, and CSV export.
