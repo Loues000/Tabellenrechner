@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { startTransition, useEffect, useEffectEvent, useRef, useState } from "react";
 import styles from "./page.module.css";
 import type {
@@ -76,9 +77,18 @@ function formatCompetitionRegion(competition: Competition): string {
   return `${area} (${association})`;
 }
 
+type MatchdayRailDragState = {
+  pointerId: number;
+  startClientX: number;
+  startScrollLeft: number;
+  hasDragged: boolean;
+};
+
 export default function Home() {
   const matchdayRailRef = useRef<HTMLDivElement | null>(null);
   const matchdayTabRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const matchdayRailDragRef = useRef<MatchdayRailDragState | null>(null);
+  const suppressMatchdayRailClickUntilRef = useRef(0);
   const urlImportDialogRef = useRef<HTMLDialogElement | null>(null);
   const [bootstrap, setBootstrap] = useState<SearchBootstrap | null>(null);
   const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS);
@@ -87,6 +97,7 @@ export default function Home() {
   const [urlInput, setUrlInput] = useState(SAMPLE_URL);
   const [isUrlImportDialogOpen, setIsUrlImportDialogOpen] = useState(false);
   const [isDesktopUrlImportExpanded, setIsDesktopUrlImportExpanded] = useState(false);
+  const [isMatchdayRailDragging, setIsMatchdayRailDragging] = useState(false);
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [activeMatchdayNumber, setActiveMatchdayNumber] = useState<number | null>(null);
   const [editedResults, setEditedResults] = useState<EditableResultMap>({});
@@ -376,6 +387,90 @@ export default function Home() {
       behavior: "auto",
     });
     event.preventDefault();
+  }
+
+  function handleMatchdayRailPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    const rail = matchdayRailRef.current;
+
+    if (
+      !rail ||
+      event.pointerType !== "mouse" ||
+      event.button !== 0 ||
+      rail.scrollWidth <= rail.clientWidth
+    ) {
+      return;
+    }
+
+    matchdayRailDragRef.current = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startScrollLeft: rail.scrollLeft,
+      hasDragged: false,
+    };
+    rail.setPointerCapture(event.pointerId);
+    setIsMatchdayRailDragging(true);
+  }
+
+  function handleMatchdayRailPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
+    const rail = matchdayRailRef.current;
+    const dragState = matchdayRailDragRef.current;
+
+    if (!rail || !dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - dragState.startClientX;
+
+    if (!dragState.hasDragged && Math.abs(deltaX) > 6) {
+      dragState.hasDragged = true;
+    }
+
+    rail.scrollLeft = dragState.startScrollLeft - deltaX;
+
+    if (dragState.hasDragged) {
+      event.preventDefault();
+    }
+  }
+
+  function finishMatchdayRailDrag(pointerId: number) {
+    const rail = matchdayRailRef.current;
+    const dragState = matchdayRailDragRef.current;
+
+    if (!dragState || dragState.pointerId !== pointerId) {
+      return;
+    }
+
+    if (dragState.hasDragged) {
+      suppressMatchdayRailClickUntilRef.current = Date.now() + 250;
+    }
+
+    if (rail?.hasPointerCapture(pointerId)) {
+      rail.releasePointerCapture(pointerId);
+    }
+
+    matchdayRailDragRef.current = null;
+    setIsMatchdayRailDragging(false);
+  }
+
+  function handleMatchdayRailPointerUp(event: ReactPointerEvent<HTMLDivElement>) {
+    finishMatchdayRailDrag(event.pointerId);
+  }
+
+  function handleMatchdayRailPointerCancel(event: ReactPointerEvent<HTMLDivElement>) {
+    finishMatchdayRailDrag(event.pointerId);
+  }
+
+  function handleMatchdayRailLostPointerCapture(event: ReactPointerEvent<HTMLDivElement>) {
+    finishMatchdayRailDrag(event.pointerId);
+  }
+
+  function handleMatchdayRailClickCapture(event: ReactMouseEvent<HTMLDivElement>) {
+    if (Date.now() > suppressMatchdayRailClickUntilRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   const computedTable = competition ? recalculateTable(competition, editedResults) : [];
@@ -749,10 +844,18 @@ export default function Home() {
               <div className={styles.matchdayToolbar}>
                 <div
                   ref={matchdayRailRef}
-                  className={styles.matchdayRail}
+                  className={`${styles.matchdayRail} ${
+                    isMatchdayRailDragging ? styles.matchdayRailDragging : ""
+                  }`}
                   role="tablist"
                   aria-label="Spieltage"
                   onWheel={handleMatchdayRailWheel}
+                  onPointerDown={handleMatchdayRailPointerDown}
+                  onPointerMove={handleMatchdayRailPointerMove}
+                  onPointerUp={handleMatchdayRailPointerUp}
+                  onPointerCancel={handleMatchdayRailPointerCancel}
+                  onLostPointerCapture={handleMatchdayRailLostPointerCapture}
+                  onClickCapture={handleMatchdayRailClickCapture}
                 >
                   {matchdays.map((matchday) => {
                     const isActive = matchday.number === activeMatchday?.number;

@@ -23,6 +23,7 @@
 - [x] Show team logos from the imported original table in the Tabellenansicht.
 - [x] Add a small release footer with GitHub repo and issue-report links.
 - [x] Convert the footer links into SVG icon buttons.
+- [x] Add a grab-and-drag mouse interaction to the Spieltage rail.
 - [x] Reorganize the repository layout so sample `fussball.de` fixtures live in a dedicated folder tree instead of the repo root.
 - [x] Harden URL imports, table baseline integrity, font-cache recovery, and score-input accessibility.
 - [x] Add a GitHub Pages landing page and document that the live Next.js importer needs a server-capable host.

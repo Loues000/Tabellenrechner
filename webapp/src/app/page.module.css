@@ -550,6 +550,7 @@
   scrollbar-color: var(--border) var(--bg-alt);
   -webkit-overflow-scrolling: touch;
   border-bottom: 1px solid var(--border-light);
+  cursor: grab;
 }
 
 .matchdayRail::-webkit-scrollbar {
@@ -564,6 +565,15 @@
   background: var(--border);
   border: 2px solid var(--bg-alt);
   border-radius: 999px;
+}
+
+.matchdayRailDragging {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.matchdayRailDragging * {
+  user-select: none;
 }
 
 .matchdayTab {
