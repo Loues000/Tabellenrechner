@@ -113,6 +113,15 @@ function parseMatchId(url: string): string {
   return url.match(/\/spiel\/([^/?]+)/)?.[1] ?? url;
 }
 
+function parseTeamLogoUrl(node: Cheerio<AnyNode>): string | undefined {
+  const imageUrl =
+    node.find(".club-logo img").first().attr("src") ??
+    node.find(".club-logo [data-responsive-image]").first().attr("data-responsive-image");
+
+  const normalizedUrl = absoluteUrl(imageUrl);
+  return normalizedUrl || undefined;
+}
+
 function parseProfile(html: string): CompetitionProfile {
   const id = extractScriptValue(html, "edWettbewerbId");
   const name = extractScriptValue(html, "edWettbewerbName");
@@ -157,43 +166,45 @@ function parseMatchdayOptions($: CheerioAPI): MatchdayOption[] {
 }
 
 function parseTable($: CheerioAPI): TableRow[] {
-  return $("#fixture-league-tables tbody tr")
-    .toArray()
-    .map((row) => {
-      const $row = $(row);
-      const teamLink = $row.find("td.column-club a").first();
-      const teamName = teamLink.find(".club-name").text().replace(/\s+/g, " ").trim();
+  const rows: TableRow[] = [];
 
-      if (!teamName) {
-        return null;
-      }
+  for (const row of $("#fixture-league-tables tbody tr").toArray()) {
+    const $row = $(row);
+    const teamLink = $row.find("td.column-club a").first();
+    const teamName = teamLink.find(".club-name").text().replace(/\s+/g, " ").trim();
 
-      const cells = $row.find("td");
-      const rank = parseNumber($row.find("td.column-rank").text());
-      const games = parseNumber(cells.eq(3).text());
-      const wins = parseNumber(cells.eq(4).text());
-      const draws = parseNumber(cells.eq(5).text());
-      const losses = parseNumber(cells.eq(6).text());
-      const ratio = parseRatio(cells.eq(7).text());
-      const goalDifference = parseNumber(cells.eq(8).text());
-      const points = parseNumber(cells.eq(9).text());
+    if (!teamName) {
+      continue;
+    }
 
-      return {
-        teamId: parseTeamId(teamLink.attr("href") ?? teamName),
-        teamName,
-        rank,
-        originalRank: rank,
-        games,
-        wins,
-        draws,
-        losses,
-        goalsFor: ratio.goalsFor,
-        goalsAgainst: ratio.goalsAgainst,
-        goalDifference,
-        points,
-      };
-    })
-    .filter((row): row is TableRow => Boolean(row));
+    const cells = $row.find("td");
+    const rank = parseNumber($row.find("td.column-rank").text());
+    const games = parseNumber(cells.eq(3).text());
+    const wins = parseNumber(cells.eq(4).text());
+    const draws = parseNumber(cells.eq(5).text());
+    const losses = parseNumber(cells.eq(6).text());
+    const ratio = parseRatio(cells.eq(7).text());
+    const goalDifference = parseNumber(cells.eq(8).text());
+    const points = parseNumber(cells.eq(9).text());
+
+    rows.push({
+      teamId: parseTeamId(teamLink.attr("href") ?? teamName),
+      teamName,
+      teamLogoUrl: parseTeamLogoUrl(teamLink),
+      rank,
+      originalRank: rank,
+      games,
+      wins,
+      draws,
+      losses,
+      goalsFor: ratio.goalsFor,
+      goalsAgainst: ratio.goalsAgainst,
+      goalDifference,
+      points,
+    });
+  }
+
+  return rows;
 }
 
 function parseScoreValue(value: string): number | null {
@@ -299,7 +310,7 @@ async function loadLandingPage(url: string): Promise<{ html: string; sourceUrl: 
     }
   }
 
-  throw new Error("Die URL konnte nicht in eine lesbare fussball.de Wettbewerbsseite aufgeloest werden.");
+  throw new Error("Die URL konnte nicht in eine lesbare fussball.de Wettbewerbsseite aufgelöst werden.");
 }
 
 export async function loadCompetitionFromUrl(inputUrl: string): Promise<Competition> {
@@ -310,7 +321,7 @@ export async function loadCompetitionFromUrl(inputUrl: string): Promise<Competit
   const selectedMatchday = matchdayOptions.find((option) => option.selected) ?? matchdayOptions[0];
 
   if (!selectedMatchday) {
-    throw new Error("Es konnten keine Spieltage fuer den Wettbewerb ermittelt werden.");
+    throw new Error("Es konnten keine Spieltage für den Wettbewerb ermittelt werden.");
   }
 
   const importedTable = parseTable($landing);
@@ -341,6 +352,7 @@ export async function loadCompetitionFromUrl(inputUrl: string): Promise<Competit
     area: profile.area,
     sourceUrl,
     sourceCompetitionUrl: absoluteUrl(profile.sourceCompetitionUrl || sourceUrl),
+    currentMatchdayNumber: selectedMatchday.number,
     importedTable,
     matchdays,
   };

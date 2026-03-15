@@ -61,6 +61,7 @@ export type Matchday = {
 export type TableRow = {
   teamId: string;
   teamName: string;
+  teamLogoUrl?: string | undefined;
   rank: number;
   originalRank: number;
   games: number;
@@ -83,6 +84,7 @@ export type Competition = {
   area: string;
   sourceUrl: string;
   sourceCompetitionUrl: string;
+  currentMatchdayNumber?: number | null;
   importedTable: TableRow[];
   matchdays: Matchday[];
 };
