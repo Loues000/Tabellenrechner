@@ -2,9 +2,11 @@ import { load } from "cheerio";
 import type { Cheerio, CheerioAPI } from "cheerio";
 import type { AnyNode } from "domhandler";
 import { decodeObfuscatedText } from "@/lib/fussballde/font-decoder";
+import { createEmptyTableAdjustment, recalculateTableFromResults } from "../table-calculator";
 import type { Competition, ImportedMatch, MatchResult, Matchday, TableRow } from "@/lib/fussballde/types";
 
 const LEGACY_HOST = "https://www.fussball.de";
+const SUPPORTED_IMPORT_HOSTS = new Set(["fussball.de", "www.fussball.de", "next.fussball.de"]);
 const USER_AGENT = "Mozilla/5.0 Tabellenrechner";
 
 type MatchdayOption = {
@@ -24,6 +26,15 @@ type CompetitionProfile = {
   area: string;
   sourceCompetitionUrl: string;
 };
+
+export class CompetitionImportError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
 
 function absoluteUrl(value?: string | null): string {
   if (!value) {
@@ -59,6 +70,43 @@ function extractStaffelId(input: string): string | null {
   }
 
   return null;
+}
+
+function extractCanonicalCompetitionId(url: URL): string | null {
+  return extractStaffelId(url.pathname) ?? extractStaffelId(url.toString());
+}
+
+function normalizeCompetitionImportUrl(input: string): { candidateUrls: string[] } {
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(input.trim());
+  } catch {
+    throw new CompetitionImportError("Die Wettbewerbs-URL ist ungueltig.", 400);
+  }
+
+  if (!SUPPORTED_IMPORT_HOSTS.has(parsedUrl.hostname.toLowerCase())) {
+    throw new CompetitionImportError(
+      "Es werden nur Wettbewerbs-URLs von fussball.de und next.fussball.de unterstuetzt.",
+      400,
+    );
+  }
+
+  const competitionId = extractCanonicalCompetitionId(parsedUrl);
+
+  if (!competitionId) {
+    throw new CompetitionImportError(
+      "Aus der Wettbewerbs-URL konnte keine Staffel-ID gelesen werden.",
+      400,
+    );
+  }
+
+  return {
+    candidateUrls: [
+      `${LEGACY_HOST}/spieltag/-/staffel/${competitionId}`,
+      `${LEGACY_HOST}/spieltagsuebersicht/-/staffel/${competitionId}`,
+    ],
+  };
 }
 
 function normalizeSeason(value: string): string {
@@ -290,13 +338,7 @@ async function withConcurrency<T, R>(
 }
 
 async function loadLandingPage(url: string): Promise<{ html: string; sourceUrl: string }> {
-  const candidateUrls = [url];
-  const staffelId = extractStaffelId(url);
-
-  if (staffelId) {
-    candidateUrls.push(`${LEGACY_HOST}/spieltag/-/staffel/${staffelId}`);
-    candidateUrls.push(`${LEGACY_HOST}/spieltagsuebersicht/-/staffel/${staffelId}`);
-  }
+  const { candidateUrls } = normalizeCompetitionImportUrl(url);
 
   for (const candidate of candidateUrls) {
     try {
@@ -311,6 +353,46 @@ async function loadLandingPage(url: string): Promise<{ html: string; sourceUrl: 
   }
 
   throw new Error("Die URL konnte nicht in eine lesbare fussball.de Wettbewerbsseite aufgelöst werden.");
+}
+
+function buildTableAdjustments(importedTable: TableRow[], matchdays: Matchday[]) {
+  const baselineCompetition: Competition = {
+    id: "baseline",
+    name: "baseline",
+    season: "",
+    association: "",
+    teamType: "",
+    leagueLevel: "",
+    area: "",
+    sourceUrl: "",
+    sourceCompetitionUrl: "",
+    currentMatchdayNumber: null,
+    tableAdjustments: {},
+    importedTable,
+    matchdays,
+  };
+  const baselineRows = recalculateTableFromResults(baselineCompetition, {});
+  const baselineByTeamId = new Map(baselineRows.map((row) => [row.teamId, row]));
+
+  return Object.fromEntries(
+    importedTable.map((row) => {
+      const baseline = baselineByTeamId.get(row.teamId);
+      const adjustment = baseline
+        ? {
+            games: row.games - baseline.games,
+            wins: row.wins - baseline.wins,
+            draws: row.draws - baseline.draws,
+            losses: row.losses - baseline.losses,
+            goalsFor: row.goalsFor - baseline.goalsFor,
+            goalsAgainst: row.goalsAgainst - baseline.goalsAgainst,
+            goalDifference: row.goalDifference - baseline.goalDifference,
+            points: row.points - baseline.points,
+          }
+        : createEmptyTableAdjustment();
+
+      return [row.teamId, adjustment];
+    }),
+  );
 }
 
 export async function loadCompetitionFromUrl(inputUrl: string): Promise<Competition> {
@@ -341,6 +423,7 @@ export async function loadCompetitionFromUrl(inputUrl: string): Promise<Competit
       matches: await parseMatches($, option.number),
     } satisfies Matchday;
   });
+  const tableAdjustments = buildTableAdjustments(importedTable, matchdays);
 
   return {
     id: profile.id,
@@ -353,6 +436,7 @@ export async function loadCompetitionFromUrl(inputUrl: string): Promise<Competit
     sourceUrl,
     sourceCompetitionUrl: absoluteUrl(profile.sourceCompetitionUrl || sourceUrl),
     currentMatchdayNumber: selectedMatchday.number,
+    tableAdjustments,
     importedTable,
     matchdays,
   };

@@ -14,9 +14,15 @@ import {
   countActiveEdits,
   getEffectiveResult,
   getTableDelta,
+  hasTableAdjustments,
   hasPendingEdit,
   recalculateTable,
 } from "@/lib/table-calculator";
+import {
+  getGuestScoreInputLabel,
+  getHomeScoreInputLabel,
+  getMatchResetLabel,
+} from "@/lib/match-accessibility";
 import { getMatchdayHeaderLabel } from "@/lib/matchday-date";
 
 const SAMPLE_URL =
@@ -405,6 +411,7 @@ export default function Home() {
   const competitionStats = competition
     ? `${competition.matchdays.length} Spieltage, ${importedMatchCount} Spiele`
     : "";
+  const showAdjustmentNotice = competition ? hasTableAdjustments(competition) : false;
 
   function renderUrlImportControls(fieldId: string, showIntroText = false) {
     return (
@@ -631,7 +638,14 @@ export default function Home() {
             {/* ── Table ── */}
             <div className={styles.tablePanel}>
               <div className={styles.tablePanelHeader}>
-                <h2>Tabelle</h2>
+                <div className={styles.tablePanelHeading}>
+                  <h2>Tabelle</h2>
+                  {showAdjustmentNotice ? (
+                    <p className={styles.adjustmentNotice}>
+                      Offizielle Korrekturen aus der Ursprungstabelle sind beruecksichtigt.
+                    </p>
+                  ) : null}
+                </div>
                 <div className={styles.tablePanelActions}>
                   <a
                     className={styles.linkButton}
@@ -847,6 +861,7 @@ export default function Home() {
                                 className={styles.scoreInput}
                                 type="text"
                                 inputMode="numeric"
+                                aria-label={getHomeScoreInputLabel(match.homeTeamName, match.guestTeamName)}
                                 value={editedResults[match.id]?.home ?? ""}
                                 onChange={(event) => updateMatchResult(match.id, "home", event.target.value)}
                                 placeholder={
@@ -861,6 +876,7 @@ export default function Home() {
                                 className={styles.scoreInput}
                                 type="text"
                                 inputMode="numeric"
+                                aria-label={getGuestScoreInputLabel(match.homeTeamName, match.guestTeamName)}
                                 value={editedResults[match.id]?.guest ?? ""}
                                 onChange={(event) => updateMatchResult(match.id, "guest", event.target.value)}
                                 placeholder={
@@ -899,6 +915,7 @@ export default function Home() {
                               onClick={() => resetMatchResult(match.id)}
                               disabled={!editedResults[match.id]}
                               type="button"
+                              aria-label={getMatchResetLabel(match.homeTeamName, match.guestTeamName)}
                               title="Tipp zurücksetzen"
                             >
                               ✕

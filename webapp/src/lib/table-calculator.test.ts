@@ -12,6 +12,7 @@ const competition: Competition = {
   area: "Kreis Essen",
   sourceUrl: "https://example.test",
   sourceCompetitionUrl: "https://example.test",
+  tableAdjustments: {},
   importedTable: [
     {
       teamId: "a",
@@ -22,9 +23,9 @@ const competition: Competition = {
       wins: 1,
       draws: 1,
       losses: 0,
-      goalsFor: 4,
+      goalsFor: 3,
       goalsAgainst: 2,
-      goalDifference: 2,
+      goalDifference: 1,
       points: 4,
     },
     {
@@ -140,5 +141,46 @@ describe("recalculateTable", () => {
     });
 
     expect(table.map((row) => row.points)).toEqual([4, 1, 0]);
+  });
+
+  it("preserves official table adjustments in the baseline standings", () => {
+    const adjustedCompetition: Competition = {
+      ...competition,
+      importedTable: [
+        {
+          ...competition.importedTable[0],
+          rank: 2,
+          originalRank: 2,
+          points: 2,
+        },
+        {
+          ...competition.importedTable[1],
+          rank: 1,
+          originalRank: 1,
+          points: 3,
+        },
+        competition.importedTable[2],
+      ],
+      tableAdjustments: {
+        a: {
+          games: 0,
+          wins: 0,
+          draws: 0,
+          losses: 0,
+          goalsFor: 0,
+          goalsAgainst: 0,
+          goalDifference: 0,
+          points: -2,
+        },
+      },
+    };
+
+    const table = recalculateTable(adjustedCompetition, {});
+
+    expect(table.map((row) => `${row.rank}-${row.teamName}-${row.points}`)).toEqual([
+      "1-Team B-3",
+      "2-Team A-2",
+      "3-Team C-1",
+    ]);
   });
 });

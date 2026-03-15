@@ -74,6 +74,17 @@ export type TableRow = {
   points: number;
 };
 
+export type TableAdjustment = {
+  games: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  points: number;
+};
+
 export type Competition = {
   id: string;
   name: string;
@@ -85,6 +96,7 @@ export type Competition = {
   sourceUrl: string;
   sourceCompetitionUrl: string;
   currentMatchdayNumber?: number | null;
+  tableAdjustments: Record<string, TableAdjustment>;
   importedTable: TableRow[];
   matchdays: Matchday[];
 };

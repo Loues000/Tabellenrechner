@@ -1,56 +1,85 @@
-import type { Competition, EditableResultMap, ImportedMatch, MatchResult, TableRow } from "@/lib/fussballde/types";
+import type {
+  Competition,
+  EditableResultMap,
+  ImportedMatch,
+  MatchResult,
+  TableAdjustment,
+  TableRow,
+} from "@/lib/fussballde/types";
+
+export function createEmptyTableAdjustment(): TableAdjustment {
+  return {
+    games: 0,
+    wins: 0,
+    draws: 0,
+    losses: 0,
+    goalsFor: 0,
+    goalsAgainst: 0,
+    goalDifference: 0,
+    points: 0,
+  };
+}
+
+export function hasTableAdjustments(competition: Competition): boolean {
+  return Object.values(competition.tableAdjustments).some((adjustment) =>
+    Object.values(adjustment).some((value) => value !== 0),
+  );
+}
 
 function toTableSeed(competition: Competition): Map<string, TableRow> {
   const seed = new Map<string, TableRow>();
 
   for (const row of competition.importedTable) {
+    const adjustment = competition.tableAdjustments[row.teamId] ?? createEmptyTableAdjustment();
     seed.set(row.teamId, {
       ...row,
       rank: row.originalRank,
-      games: 0,
-      wins: 0,
-      draws: 0,
-      losses: 0,
-      goalsFor: 0,
-      goalsAgainst: 0,
-      goalDifference: 0,
-      points: 0,
+      games: adjustment.games,
+      wins: adjustment.wins,
+      draws: adjustment.draws,
+      losses: adjustment.losses,
+      goalsFor: adjustment.goalsFor,
+      goalsAgainst: adjustment.goalsAgainst,
+      goalDifference: adjustment.goalDifference,
+      points: adjustment.points,
     });
   }
 
   for (const matchday of competition.matchdays) {
     for (const match of matchday.matches) {
       if (!seed.has(match.homeTeamId)) {
+        const adjustment = competition.tableAdjustments[match.homeTeamId] ?? createEmptyTableAdjustment();
         seed.set(match.homeTeamId, {
           teamId: match.homeTeamId,
           teamName: match.homeTeamName,
           rank: 0,
           originalRank: 0,
-          games: 0,
-          wins: 0,
-          draws: 0,
-          losses: 0,
-          goalsFor: 0,
-          goalsAgainst: 0,
-          goalDifference: 0,
-          points: 0,
+          games: adjustment.games,
+          wins: adjustment.wins,
+          draws: adjustment.draws,
+          losses: adjustment.losses,
+          goalsFor: adjustment.goalsFor,
+          goalsAgainst: adjustment.goalsAgainst,
+          goalDifference: adjustment.goalDifference,
+          points: adjustment.points,
         });
       }
 
       if (!match.isBye && !seed.has(match.guestTeamId)) {
+        const adjustment = competition.tableAdjustments[match.guestTeamId] ?? createEmptyTableAdjustment();
         seed.set(match.guestTeamId, {
           teamId: match.guestTeamId,
           teamName: match.guestTeamName,
           rank: 0,
           originalRank: 0,
-          games: 0,
-          wins: 0,
-          draws: 0,
-          losses: 0,
-          goalsFor: 0,
-          goalsAgainst: 0,
-          goalDifference: 0,
-          points: 0,
+          games: adjustment.games,
+          wins: adjustment.wins,
+          draws: adjustment.draws,
+          losses: adjustment.losses,
+          goalsFor: adjustment.goalsFor,
+          goalsAgainst: adjustment.goalsAgainst,
+          goalDifference: adjustment.goalDifference,
+          points: adjustment.points,
         });
       }
     }
@@ -100,7 +129,10 @@ export function countActiveEdits(edits: EditableResultMap): number {
   return Object.keys(edits).length;
 }
 
-export function recalculateTable(competition: Competition, edits: EditableResultMap): TableRow[] {
+export function recalculateTableFromResults(
+  competition: Competition,
+  edits: EditableResultMap,
+): TableRow[] {
   const table = toTableSeed(competition);
 
   for (const matchday of competition.matchdays) {
@@ -126,8 +158,10 @@ export function recalculateTable(competition: Competition, edits: EditableResult
       guest.games += 1;
       home.goalsFor += result.home;
       home.goalsAgainst += result.guest;
+      home.goalDifference += result.home - result.guest;
       guest.goalsFor += result.guest;
       guest.goalsAgainst += result.home;
+      guest.goalDifference += result.guest - result.home;
 
       if (result.home > result.guest) {
         home.wins += 1;
@@ -146,10 +180,7 @@ export function recalculateTable(competition: Competition, edits: EditableResult
     }
   }
 
-  const rows = Array.from(table.values()).map((row) => ({
-    ...row,
-    goalDifference: row.goalsFor - row.goalsAgainst,
-  }));
+  const rows = Array.from(table.values());
 
   rows.sort((left, right) => {
     if (right.points !== left.points) {
@@ -164,6 +195,10 @@ export function recalculateTable(competition: Competition, edits: EditableResult
       return right.goalsFor - left.goalsFor;
     }
 
+    if (left.originalRank > 0 && right.originalRank > 0 && left.originalRank !== right.originalRank) {
+      return left.originalRank - right.originalRank;
+    }
+
     return left.teamName.localeCompare(right.teamName, "de");
   });
 
@@ -171,6 +206,16 @@ export function recalculateTable(competition: Competition, edits: EditableResult
     ...row,
     rank: index + 1,
   }));
+}
+
+export function recalculateTable(competition: Competition, edits: EditableResultMap): TableRow[] {
+  if (countActiveEdits(edits) === 0) {
+    return competition.importedTable
+      .map((row) => ({ ...row }))
+      .sort((left, right) => left.rank - right.rank || left.originalRank - right.originalRank);
+  }
+
+  return recalculateTableFromResults(competition, edits);
 }
 
 export function getTableDelta(row: TableRow, importedTable: TableRow[]) {

@@ -29,6 +29,12 @@ The application lives in `webapp`.
 ## Project Layout
 
 ```text
+samples/
+  fussballde/
+    html/                              # captured legacy pages and ajax fragments
+    css/                               # extracted obfuscation-related stylesheets
+    fonts/                             # obfuscation fonts used for decoding
+    wam/                               # captured WAM endpoint JSON responses
 webapp/
   src/app/
     api/competition/route.ts           # URL import endpoint
@@ -45,7 +51,7 @@ webapp/
     table-calculator.test.ts           # ranking/result override tests
 ```
 
-Sample `fussball.de` responses and font files used during development are stored in the repository root as `sample_*` files.
+Captured `fussball.de` fixtures used during parser and decoder development live under `samples/fussballde/`, grouped by content type instead of sitting in the repository root.
 
 ## Local Development
 

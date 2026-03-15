@@ -66,7 +66,13 @@ async function loadFontMapping(fontId: string): Promise<Map<number, string>> {
 
 async function getFontMapping(fontId: string): Promise<Map<number, string>> {
   if (!fontCache.has(fontId)) {
-    fontCache.set(fontId, loadFontMapping(fontId));
+    fontCache.set(
+      fontId,
+      loadFontMapping(fontId).catch((error) => {
+        fontCache.delete(fontId);
+        throw error;
+      }),
+    );
   }
 
   return fontCache.get(fontId) as Promise<Map<number, string>>;
