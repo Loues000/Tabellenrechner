@@ -68,7 +68,7 @@ npm install
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+Then open `http://localhost:3001`.
 
 Useful commands:
 
@@ -78,6 +78,12 @@ npm run lint
 npm run test
 npm run build
 ```
+
+## Hosting
+
+GitHub Pages can only serve static files from the repository. The actual Tabellenrechner in `webapp` depends on Next.js server routes under `webapp/src/app/api/*` to fetch, parse, and decode live `fussball.de` data, so GitHub Pages cannot host the full app as-is.
+
+This repository now includes a root `index.html` so a Pages site based on `master/(root)` shows a proper landing page instead of rendering the README. For the live importer app itself, use a server-capable platform such as Vercel, Railway, Render, or another Node.js host.
 
 ## How It Works
 
