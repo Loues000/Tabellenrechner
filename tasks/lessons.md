@@ -1,3 +1,3 @@
 # Lessons
 
-- No project-specific lessons recorded yet.
+- The WAM search bootstrap should retry transient upstream failures and stop early when a selected filter branch has no downstream options; otherwise the UI can surface avoidable 500s from invalid follow-up requests.
