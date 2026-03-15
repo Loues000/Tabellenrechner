@@ -7,31 +7,44 @@
 .page {
   margin: 0 auto;
   max-width: 1280px;
-  padding: 12px 0 60px;
+  padding: 0 0 60px;
 }
 
 /* ── Info bar (replaces hero + summary cards) ── */
 .infoBar {
-  align-items: center;
   background: var(--bg-alt);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
+  display: grid;
+  gap: 8px;
   margin-bottom: 12px;
   padding: 8px 12px;
 }
 
-.infoBar span {
-  color: var(--text-muted);
-  font-size: 12px;
+.infoBarBlock {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
 }
 
-.infoBar strong {
+.infoBarLabel {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.infoBarValue {
   color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.infoBarMeta {
+  color: var(--text-muted);
   font-size: 12px;
-  font-weight: 500;
+  line-height: 1.35;
 }
 
 .infoBarAccent {
@@ -83,6 +96,103 @@
   color: var(--text-muted);
   font-size: 12px;
   line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+.mobileOnly {
+  display: block;
+}
+
+.desktopOnly {
+  display: none;
+}
+
+.mobileImportInline {
+  align-items: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+}
+
+.mobileImportInlineCopy {
+  display: grid;
+  gap: 2px;
+}
+
+.mobileImportInlineLabel {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobileImportInlineTitle {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mobileImportInlineButton {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 6px 12px;
+}
+
+.desktopImportInlineLabel {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.desktopImportInline {
+  align-items: center;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 10px 0;
+}
+
+.desktopImportInlineCopy {
+  display: grid;
+  gap: 2px;
+}
+
+.desktopImportInlineTitle {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.desktopImportInlineActions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.desktopImportExpanded {
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 12px;
+  padding: 10px 0 12px;
+}
+
+.desktopImportExpandedHeader {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
   margin-bottom: 10px;
 }
 
@@ -204,6 +314,11 @@
   text-decoration: underline;
 }
 
+.dialogCloseButton {
+  flex: 0 0 auto;
+  padding-inline: 10px;
+}
+
 .statusNote {
   color: var(--text-muted);
   font-size: 12px;
@@ -213,6 +328,27 @@
   color: var(--danger);
   font-size: 12px;
   margin-top: 6px;
+}
+
+.mobileImportDialog {
+  background: transparent;
+  border: none;
+  max-width: min(560px, calc(100vw - 24px));
+  padding: 12px;
+  width: 100%;
+}
+
+.mobileImportDialog::backdrop {
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+.mobileImportDialogCard {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.2);
+  padding: 14px;
 }
 
 /* ── Workspace (table + matches, stacked on mobile, side-by-side on desktop) ── */
@@ -304,6 +440,31 @@
   text-overflow: ellipsis;
 }
 
+.teamCellContent {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.teamLogo {
+  background: var(--bg-alt);
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  display: block;
+  flex: 0 0 20px;
+  height: 20px;
+  object-fit: contain;
+  overflow: hidden;
+  width: 20px;
+}
+
+.teamNameText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .pointsCell {
   font-weight: 700;
 }
@@ -370,10 +531,28 @@
   display: flex;
   gap: 6px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
   padding: 8px 12px;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg-alt);
   -webkit-overflow-scrolling: touch;
   border-bottom: 1px solid var(--border-light);
+}
+
+.matchdayRail::-webkit-scrollbar {
+  height: 10px;
+}
+
+.matchdayRail::-webkit-scrollbar-track {
+  background: var(--bg-alt);
+}
+
+.matchdayRail::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border: 2px solid var(--bg-alt);
+  border-radius: 999px;
 }
 
 .matchdayTab {
@@ -387,6 +566,7 @@
   gap: 1px;
   min-width: 100px;
   padding: 7px 10px;
+  scroll-margin-inline: 48px;
   text-align: left;
   transition:
     border-color 120ms ease,
@@ -468,6 +648,12 @@
   border-bottom: 1px solid var(--border-light);
 }
 
+.matchdayHeaderText {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 .matchdayBadge {
   color: var(--text);
   font-size: 10px;
@@ -479,7 +665,7 @@
 .matchdayLabel {
   color: var(--text-muted);
   font-size: 11px;
-  margin-left: 6px;
+  line-height: 1.35;
 }
 
 .matchdayMeta {
@@ -700,8 +886,16 @@
     padding: 20px 16px 60px;
   }
 
+  .mobileOnly {
+    display: none;
+  }
+
+  .desktopOnly {
+    display: block;
+  }
+
   .controlGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     background: transparent;
     gap: 16px;
     border: none;
@@ -731,13 +925,17 @@
   .infoBar {
     border: 1px solid var(--border);
     border-radius: 2px;
-    gap: 6px 20px;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 10px 24px;
     padding: 10px 14px;
     margin-bottom: 16px;
   }
 
-  .infoBar span,
-  .infoBar strong {
+  .infoBarValue {
+    font-size: 14px;
+  }
+
+  .infoBarMeta {
     font-size: 13px;
   }
 
@@ -769,6 +967,12 @@
 
   .teamCell {
     max-width: none;
+  }
+
+  .teamLogo {
+    flex-basis: 22px;
+    height: 22px;
+    width: 22px;
   }
 
   .matchdayRail {
@@ -852,6 +1056,10 @@
 
   .fieldLabel {
     font-size: 12px;
+  }
+
+  .mobileImportDialog {
+    display: none;
   }
 }
 

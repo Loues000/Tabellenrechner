@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
     const payload = (await request.json()) as { url?: string };
 
     if (!payload.url?.trim()) {
-      return NextResponse.json({ error: "Es wurde keine Wettbewerbs-URL uebergeben." }, { status: 400 });
+      return NextResponse.json({ error: "Es wurde keine Wettbewerbs-URL übergeben." }, { status: 400 });
     }
 
     const competition = await loadCompetitionFromUrl(payload.url);

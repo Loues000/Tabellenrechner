@@ -1,6 +1,7 @@
 "use client";
 
-import { startTransition, useEffect, useEffectEvent, useState } from "react";
+import Image from "next/image";
+import { startTransition, useEffect, useEffectEvent, useRef, useState } from "react";
 import styles from "./page.module.css";
 import type {
   Competition,
@@ -16,6 +17,7 @@ import {
   hasPendingEdit,
   recalculateTable,
 } from "@/lib/table-calculator";
+import { getMatchdayHeaderLabel } from "@/lib/matchday-date";
 
 const SAMPLE_URL =
   "https://www.fussball.de/spieltag/kreisliga-b-gruppe-1-kreis-essen-kreisliga-b-herren-saison2526-niederrhein/-/spieldatum/2026-03-15/staffel/02TMJM5PBK00000AVS5489BUVSSD35NB-G#!/";
@@ -32,12 +34,53 @@ function signedDelta(value: number): string {
   return value > 0 ? `+${value}` : `${value}`;
 }
 
+function findCurrentMatchdayNumber(competition: Competition | null): number | null {
+  if (!competition) {
+    return null;
+  }
+
+  return (
+    competition.currentMatchdayNumber ??
+    competition.matchdays.find((matchday) =>
+      matchday.matches.some(
+        (match) => match.originalResult.home === null || match.originalResult.guest === null,
+      ),
+    )?.number ??
+    competition.matchdays[0]?.number ??
+    null
+  );
+}
+
+function normalizeMetaValue(value: string): string {
+  return value.trim().toLocaleLowerCase("de-DE");
+}
+
+function formatCompetitionRegion(competition: Competition): string {
+  const area = competition.area.trim();
+  const association = competition.association.trim();
+
+  if (!area) {
+    return association;
+  }
+
+  if (!association || normalizeMetaValue(area) === normalizeMetaValue(association)) {
+    return area;
+  }
+
+  return `${area} (${association})`;
+}
+
 export default function Home() {
+  const matchdayRailRef = useRef<HTMLDivElement | null>(null);
+  const matchdayTabRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const urlImportDialogRef = useRef<HTMLDialogElement | null>(null);
   const [bootstrap, setBootstrap] = useState<SearchBootstrap | null>(null);
   const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS);
   const [competitions, setCompetitions] = useState<CompetitionOption[]>([]);
   const [selectedCompetitionUrl, setSelectedCompetitionUrl] = useState("");
   const [urlInput, setUrlInput] = useState(SAMPLE_URL);
+  const [isUrlImportDialogOpen, setIsUrlImportDialogOpen] = useState(false);
+  const [isDesktopUrlImportExpanded, setIsDesktopUrlImportExpanded] = useState(false);
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [activeMatchdayNumber, setActiveMatchdayNumber] = useState<number | null>(null);
   const [editedResults, setEditedResults] = useState<EditableResultMap>({});
@@ -72,15 +115,66 @@ export default function Home() {
       return;
     }
 
-    const defaultMatchday =
-      competition.matchdays.find((matchday) =>
-        matchday.matches.some(
-          (match) => match.originalResult.home === null || match.originalResult.guest === null,
-        ),
-      ) ?? competition.matchdays[0];
-
-    setActiveMatchdayNumber(defaultMatchday?.number ?? null);
+    setActiveMatchdayNumber(findCurrentMatchdayNumber(competition));
   }, [competition]);
+
+  useEffect(() => {
+    if (activeMatchdayNumber === null) {
+      return;
+    }
+
+    const activeTab = matchdayTabRefs.current[activeMatchdayNumber];
+
+    if (!activeTab) {
+      return;
+    }
+
+    activeTab.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [activeMatchdayNumber, competition?.id]);
+
+  useEffect(() => {
+    const dialog = urlImportDialogRef.current;
+
+    if (!dialog) {
+      return;
+    }
+
+    const syncDialogState = () => {
+      setIsUrlImportDialogOpen(dialog.open);
+    };
+
+    dialog.addEventListener("close", syncDialogState);
+    dialog.addEventListener("cancel", syncDialogState);
+
+    return () => {
+      dialog.removeEventListener("close", syncDialogState);
+      dialog.removeEventListener("cancel", syncDialogState);
+    };
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 900px)");
+
+    const handleViewportChange = (event: MediaQueryListEvent) => {
+      if (!event.matches) {
+        setIsDesktopUrlImportExpanded(false);
+        return;
+      }
+
+      urlImportDialogRef.current?.close();
+      setIsUrlImportDialogOpen(false);
+    };
+
+    mediaQuery.addEventListener("change", handleViewportChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleViewportChange);
+    };
+  }, []);
 
   async function loadBootstrap(partial: Partial<SearchFilters>) {
     setIsBootstrapping(true);
@@ -157,9 +251,9 @@ export default function Home() {
     }
   }
 
-  async function importCompetition(targetUrl: string) {
+  async function importCompetition(targetUrl: string, source: "url" | "search" = "url") {
     if (!targetUrl.trim()) {
-      setImportError("Bitte zuerst eine Wettbewerbs-URL eingeben oder einen Wettbewerb auswaehlen.");
+      setImportError("Bitte zuerst eine Wettbewerbs-URL eingeben oder einen Wettbewerb auswählen.");
       return;
     }
 
@@ -185,11 +279,42 @@ export default function Home() {
         setCompetition(payload);
         setEditedResults({});
       });
+
+      if (source === "url" && window.matchMedia("(min-width: 900px)").matches) {
+        setIsDesktopUrlImportExpanded(false);
+      }
+
+      urlImportDialogRef.current?.close();
+      setIsUrlImportDialogOpen(false);
     } catch (error) {
       setImportError(error instanceof Error ? error.message : "Der Wettbewerb konnte nicht importiert werden.");
     } finally {
       setIsImporting(false);
     }
+  }
+
+  function openUrlImportDialog() {
+    const dialog = urlImportDialogRef.current;
+
+    if (!dialog || dialog.open) {
+      return;
+    }
+
+    dialog.showModal();
+    setIsUrlImportDialogOpen(true);
+  }
+
+  function closeUrlImportDialog() {
+    urlImportDialogRef.current?.close();
+    setIsUrlImportDialogOpen(false);
+  }
+
+  function openDesktopUrlImport() {
+    setIsDesktopUrlImportExpanded(true);
+  }
+
+  function closeDesktopUrlImport() {
+    setIsDesktopUrlImportExpanded(false);
   }
 
   function updateFilters(patch: Partial<SearchFilters>) {
@@ -229,8 +354,27 @@ export default function Home() {
     });
   }
 
+  function handleMatchdayRailWheel(event: React.WheelEvent<HTMLDivElement>) {
+    const rail = matchdayRailRef.current;
+
+    if (!rail || rail.scrollWidth <= rail.clientWidth) {
+      return;
+    }
+
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+      return;
+    }
+
+    rail.scrollBy({
+      left: event.deltaY,
+      behavior: "auto",
+    });
+    event.preventDefault();
+  }
+
   const computedTable = competition ? recalculateTable(competition, editedResults) : [];
   const activeEdits = countActiveEdits(editedResults);
+  const matchdays = competition?.matchdays ?? [];
   const importedMatchCount = competition
     ? competition.matchdays.reduce((sum, matchday) => sum + matchday.matches.length, 0)
     : 0;
@@ -245,133 +389,221 @@ export default function Home() {
         );
       }, 0)
     : 0;
-  const activeMatchdayIndex = competition
-    ? competition.matchdays.findIndex((matchday) => matchday.number === activeMatchdayNumber)
-    : -1;
+  const activeMatchdayIndex = matchdays.findIndex((matchday) => matchday.number === activeMatchdayNumber);
   const normalizedActiveMatchdayIndex =
-    competition && competition.matchdays.length
+    matchdays.length
       ? activeMatchdayIndex >= 0
         ? activeMatchdayIndex
         : 0
       : -1;
-  const activeMatchday =
-    competition && normalizedActiveMatchdayIndex >= 0
-      ? competition.matchdays[normalizedActiveMatchdayIndex]
-      : null;
+  const activeMatchday = normalizedActiveMatchdayIndex >= 0 ? matchdays[normalizedActiveMatchdayIndex] : null;
+  const competitionMeta = competition
+    ? [competition.season, competition.teamType, formatCompetitionRegion(competition)]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
+  const competitionStats = competition
+    ? `${competition.matchdays.length} Spieltage, ${importedMatchCount} Spiele`
+    : "";
 
-  return (
-    <main className={styles.page}>
-      {/* ── Import controls ── */}
-      <section className={styles.controlGrid}>
-        <article className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div>
-              <span className={styles.panelKicker}>Direktimport</span>
-              <h2>Wettbewerbs-URL einfuegen</h2>
-            </div>
-          </div>
+  function renderUrlImportControls(fieldId: string, showIntroText = false) {
+    return (
+      <>
+        {showIntroText ? (
           <p className={styles.panelText}>
             Funktioniert mit klassischen fussball.de-Links und mit den neuen next.fussball.de
             Wettbewerbs-URLs.
           </p>
-          <label className={styles.fieldLabel} htmlFor="competition-url">
-            Wettbewerbs-URL
-          </label>
-          <textarea
-            id="competition-url"
-            className={styles.textarea}
-            value={urlInput}
-            onChange={(event) => setUrlInput(event.target.value)}
-            rows={2}
-            placeholder="https://www.fussball.de/spieltag/.../staffel/..."
-          />
-          <div className={styles.inlineActions}>
-            <button
-              className={styles.primaryButton}
-              onClick={() => void importCompetition(urlInput)}
-              disabled={isImporting}
-              type="button"
-            >
-              {isImporting ? "Import laeuft..." : "Staffel laden"}
-            </button>
-            <button
-              className={styles.secondaryButton}
-              onClick={() => setUrlInput(SAMPLE_URL)}
-              type="button"
-            >
-              Beispiel einsetzen
+        ) : null}
+        <label className={styles.fieldLabel} htmlFor={fieldId}>
+          Wettbewerbs-URL
+        </label>
+        <textarea
+          id={fieldId}
+          className={styles.textarea}
+          value={urlInput}
+          onChange={(event) => setUrlInput(event.target.value)}
+          rows={2}
+          placeholder="https://www.fussball.de/spieltag/.../staffel/..."
+        />
+        <div className={styles.inlineActions}>
+          <button
+            className={styles.primaryButton}
+            onClick={() => void importCompetition(urlInput)}
+            disabled={isImporting}
+            type="button"
+          >
+            {isImporting ? "Import laeuft..." : "Staffel laden"}
+          </button>
+          <button
+            className={styles.secondaryButton}
+            onClick={() => setUrlInput(SAMPLE_URL)}
+            type="button"
+          >
+            Beispiel einsetzen
+          </button>
+        </div>
+        {importError ? <p className={styles.error}>{importError}</p> : null}
+      </>
+    );
+  }
+
+  function renderDesktopUrlImportPanel() {
+    if (!isDesktopUrlImportExpanded) {
+      return (
+        <div className={styles.desktopImportInline}>
+          <div className={styles.desktopImportInlineCopy}>
+            <span className={styles.desktopImportInlineLabel}>Direktimport</span>
+            <strong className={styles.desktopImportInlineTitle}>Link schon vorhanden? Per URL laden.</strong>
+          </div>
+          <div className={styles.desktopImportInlineActions}>
+            <button className={styles.secondaryButton} onClick={openDesktopUrlImport} type="button">
+              URL einfügen
             </button>
           </div>
           {importError ? <p className={styles.error}>{importError}</p> : null}
-        </article>
+        </div>
+      );
+    }
 
-        <article className={styles.panel}>
-          <div className={styles.panelHeader}>
-            <div>
-              <span className={styles.panelKicker}>Liga-Suche</span>
-              <h2>Wettbewerb ueber Filter finden</h2>
-            </div>
+    return (
+      <div className={styles.desktopImportExpanded}>
+        <div className={styles.desktopImportExpandedHeader}>
+          <div className={styles.desktopImportInlineCopy}>
+            <span className={styles.desktopImportInlineLabel}>Direktimport</span>
+            <strong className={styles.desktopImportInlineTitle}>Wettbewerb per URL laden</strong>
           </div>
-          <p className={styles.panelText}>
-            Die Auswahl verwendet die WAM-Endpunkte von fussball.de und fuehrt ueber Verband,
-            Saison, Mannschaftsart, Liga und Gebiet.
-          </p>
+          <button className={styles.secondaryButton} onClick={closeDesktopUrlImport} type="button">
+            Einklappen
+          </button>
+        </div>
+        <p className={styles.panelText}>
+          Funktioniert mit klassischen fussball.de-Links und mit den neuen next.fussball.de
+          Wettbewerbs-URLs.
+        </p>
+        {renderUrlImportControls("competition-url-desktop")}
+      </div>
+    );
+  }
 
-          <div className={styles.filterGrid}>
-            {searchSelects.map(({ label, key, options }) => (
-              <label key={key} className={styles.selectGroup}>
-                <span>{label}</span>
-                <select
-                  value={filters[key]}
-                  onChange={(event) =>
-                    updateFilters({ [key]: event.target.value } as Partial<SearchFilters>)
-                  }
-                  disabled={!bootstrap || isBootstrapping}
-                >
-                  {options.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ))}
+  function renderSearchPanelContent() {
+    return (
+      <>
+        <p className={styles.panelText}>
+          Die Auswahl verwendet die WAM-Endpunkte von fussball.de und führt über Verband,
+          Saison, Mannschaftsart, Liga und Gebiet.
+        </p>
+        <div className={styles.desktopOnly}>{renderDesktopUrlImportPanel()}</div>
+        <div className={styles.mobileOnly}>
+          <div className={styles.mobileImportInline}>
+            <div className={styles.mobileImportInlineCopy}>
+              <span className={styles.mobileImportInlineLabel}>Alternativ</span>
+              <strong className={styles.mobileImportInlineTitle}>Wettbewerb direkt per URL laden</strong>
+            </div>
+            <button
+              className={`${styles.secondaryButton} ${styles.mobileImportInlineButton}`}
+              onClick={openUrlImportDialog}
+              type="button"
+            >
+              URL einfuegen
+            </button>
+          </div>
+          {!isUrlImportDialogOpen && importError ? <p className={styles.error}>{importError}</p> : null}
+        </div>
 
-            <label className={styles.selectGroupWide}>
-              <span>Wettbewerb</span>
+        <div className={styles.filterGrid}>
+          {searchSelects.map(({ label, key, options }) => (
+            <label key={key} className={styles.selectGroup}>
+              <span>{label}</span>
               <select
-                value={selectedCompetitionUrl}
-                onChange={(event) => setSelectedCompetitionUrl(event.target.value)}
-                disabled={isLoadingCompetitionList || !competitions.length}
+                value={filters[key]}
+                onChange={(event) =>
+                  updateFilters({ [key]: event.target.value } as Partial<SearchFilters>)
+                }
+                disabled={!bootstrap || isBootstrapping}
               >
-                <option value="">
-                  {isLoadingCompetitionList
-                    ? "Wettbewerbe laden..."
-                    : competitions.length
-                      ? "Wettbewerb waehlen"
-                      : "Noch kein Wettbewerb verfuegbar"}
-                </option>
-                {competitions.map((option) => (
-                  <option key={option.url} value={option.url}>
+                {options.map((option) => (
+                  <option key={option.id} value={option.id}>
                     {option.label}
                   </option>
                 ))}
               </select>
             </label>
-          </div>
+          ))}
 
-          <div className={styles.inlineActions}>
+          <label className={styles.selectGroupWide}>
+            <span>Wettbewerb</span>
+            <select
+              value={selectedCompetitionUrl}
+              onChange={(event) => setSelectedCompetitionUrl(event.target.value)}
+              disabled={isLoadingCompetitionList || !competitions.length}
+            >
+              <option value="">
+                {isLoadingCompetitionList
+                  ? "Wettbewerbe laden..."
+                  : competitions.length
+                    ? "Wettbewerb wählen"
+                    : "Noch kein Wettbewerb verfügbar"}
+              </option>
+              {competitions.map((option) => (
+                <option key={option.url} value={option.url}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className={styles.inlineActions}>
+          <button
+            className={styles.primaryButton}
+            onClick={() => void importCompetition(selectedCompetitionUrl, "search")}
+            disabled={!selectedCompetitionUrl || isImporting}
+            type="button"
+          >
+            Auswahl importieren
+          </button>
+          {isBootstrapping ? <span className={styles.statusNote}>Filter aktualisieren...</span> : null}
+        </div>
+        {searchError ? <p className={styles.error}>{searchError}</p> : null}
+      </>
+    );
+  }
+
+  return (
+    <main className={styles.page}>
+      <dialog
+        ref={urlImportDialogRef}
+        className={styles.mobileImportDialog}
+        aria-labelledby="mobile-url-import-title"
+      >
+        <div className={styles.mobileImportDialogCard}>
+          <div className={styles.panelHeader}>
+            <div>
+              <span className={styles.panelKicker}>Direktimport</span>
+              <h2 id="mobile-url-import-title">Wettbewerbs-URL einfuegen</h2>
+            </div>
             <button
-              className={styles.primaryButton}
-              onClick={() => void importCompetition(selectedCompetitionUrl)}
-              disabled={!selectedCompetitionUrl || isImporting}
+              className={`${styles.secondaryButton} ${styles.dialogCloseButton}`}
+              onClick={closeUrlImportDialog}
               type="button"
             >
-              Auswahl importieren
+              Schliessen
             </button>
-            {isBootstrapping ? <span className={styles.statusNote}>Filter aktualisieren...</span> : null}
           </div>
-          {searchError ? <p className={styles.error}>{searchError}</p> : null}
+          {renderUrlImportControls("competition-url-mobile")}
+        </div>
+      </dialog>
+      {/* ── Import controls ── */}
+      <section className={styles.controlGrid}>
+        <article className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <span className={styles.panelKicker}>Liga-Suche</span>
+              <h2>Wettbewerb über Filter finden</h2>
+            </div>
+          </div>
+          {renderSearchPanelContent()}
         </article>
       </section>
 
@@ -379,16 +611,19 @@ export default function Home() {
         <>
           {/* ── Compact info bar ── */}
           <div className={styles.infoBar}>
-            <span>Wettbewerb:</span>
-            <strong>{competition.name}</strong>
-            <span>·</span>
-            <span>{competition.season} / {competition.teamType}</span>
-            <span>·</span>
-            <span>{competition.area} ({competition.association})</span>
-            <span>·</span>
-            <span>{competition.matchdays.length} Spieltage, {importedMatchCount} Spiele</span>
-            <span>·</span>
-            <span>Rechner: <strong className={styles.infoBarAccent}>{activeEdits} Aenderungen</strong>, {resolvedMatchCount} Spiele gewertet</span>
+            <div className={styles.infoBarBlock}>
+              <span className={styles.infoBarLabel}>Wettbewerb</span>
+              <strong className={styles.infoBarValue}>{competition.name}</strong>
+              <span className={styles.infoBarMeta}>{competitionMeta}</span>
+            </div>
+            <div className={styles.infoBarBlock}>
+              <span className={styles.infoBarLabel}>Rechner</span>
+              <span className={styles.infoBarMeta}>{competitionStats}</span>
+              <span className={styles.infoBarMeta}>
+                <strong className={styles.infoBarAccent}>{activeEdits} Änderungen</strong>,{" "}
+                {resolvedMatchCount} Spiele gewertet
+              </span>
+            </div>
           </div>
 
           {/* ── Table + Matches workspace ── */}
@@ -412,7 +647,7 @@ export default function Home() {
                     disabled={!activeEdits}
                     type="button"
                   >
-                    Zuruecksetzen
+                    Zurücksetzen
                   </button>
                 </div>
               </div>
@@ -439,7 +674,22 @@ export default function Home() {
                       return (
                         <tr key={row.teamId}>
                           <td className={styles.rankCell}>{row.rank}.</td>
-                          <td className={styles.teamCell}>{row.teamName}</td>
+                          <td className={styles.teamCell}>
+                            <div className={styles.teamCellContent}>
+                              {row.teamLogoUrl ? (
+                                <Image
+                                  className={styles.teamLogo}
+                                  src={row.teamLogoUrl}
+                                  alt=""
+                                  width={20}
+                                  height={20}
+                                  sizes="20px"
+                                  unoptimized
+                                />
+                              ) : null}
+                              <span className={styles.teamNameText}>{row.teamName}</span>
+                            </div>
+                          </td>
                           <td>{row.games}</td>
                           <td className={styles.colHideable}>{row.wins}</td>
                           <td className={styles.colHideable}>{row.draws}</td>
@@ -477,20 +727,30 @@ export default function Home() {
               <div className={styles.matchesPanelHeader}>
                 <h2>Spielpaarungen</h2>
                 <p className={styles.matchesPanelHint}>
-                  Spieltag waehlen, durchklicken und Ergebnisse direkt anpassen. Leere Felder
+                  Spieltag wählen, durchklicken und Ergebnisse direkt anpassen. Leere Felder
                   entfernen den Tipp.
                 </p>
               </div>
 
               <div className={styles.matchdayToolbar}>
-                <div className={styles.matchdayRail} role="tablist" aria-label="Spieltage">
-                  {competition.matchdays.map((matchday) => {
+                <div
+                  ref={matchdayRailRef}
+                  className={styles.matchdayRail}
+                  role="tablist"
+                  aria-label="Spieltage"
+                  onWheel={handleMatchdayRailWheel}
+                >
+                  {matchdays.map((matchday) => {
                     const isActive = matchday.number === activeMatchday?.number;
 
                     return (
                       <button
+                        ref={(element) => {
+                          matchdayTabRefs.current[matchday.number] = element;
+                        }}
                         key={matchday.number}
                         id={`matchday-tab-${matchday.number}`}
+                        data-matchday-number={matchday.number}
                         className={`${styles.matchdayTab} ${isActive ? styles.matchdayTabActive : ""}`}
                         type="button"
                         role="tab"
@@ -511,7 +771,7 @@ export default function Home() {
                     onClick={() =>
                       normalizedActiveMatchdayIndex > 0 &&
                       setActiveMatchdayNumber(
-                        competition.matchdays[normalizedActiveMatchdayIndex - 1].number,
+                        matchdays[normalizedActiveMatchdayIndex - 1].number,
                       )
                     }
                     disabled={normalizedActiveMatchdayIndex <= 0}
@@ -520,43 +780,48 @@ export default function Home() {
                     Vorheriger
                   </button>
                   <span className={styles.matchdayCounter}>
-                    {normalizedActiveMatchdayIndex + 1} / {competition.matchdays.length}
+                    {normalizedActiveMatchdayIndex + 1} / {matchdays.length}
                   </span>
                   <button
                     className={styles.matchdayNavButton}
                     onClick={() =>
                       normalizedActiveMatchdayIndex >= 0 &&
-                      normalizedActiveMatchdayIndex < competition.matchdays.length - 1 &&
+                      normalizedActiveMatchdayIndex < matchdays.length - 1 &&
                       setActiveMatchdayNumber(
-                        competition.matchdays[normalizedActiveMatchdayIndex + 1].number,
+                        matchdays[normalizedActiveMatchdayIndex + 1].number,
                       )
                     }
-                    disabled={normalizedActiveMatchdayIndex >= competition.matchdays.length - 1}
+                    disabled={normalizedActiveMatchdayIndex >= matchdays.length - 1}
                     type="button"
                   >
-                    Naechster
+                    Nächster
                   </button>
                 </div>
               </div>
 
               <div className={styles.matchdayList}>
-                {competition.matchdays
+                {matchdays
                   .filter((matchday) => matchday.number === activeMatchday?.number)
-                  .map((matchday) => (
-                  <section
-                    key={matchday.number}
-                    id={`matchday-panel-${matchday.number}`}
-                    className={styles.matchdayCard}
-                    role="tabpanel"
-                    aria-labelledby={`matchday-tab-${matchday.number}`}
-                  >
-                    <div className={styles.matchdayHeader}>
-                      <div>
-                        <span className={styles.matchdayBadge}>{matchday.number}. Spieltag</span>
-                        <span className={styles.matchdayLabel}>{matchday.label}</span>
-                      </div>
-                      <span className={styles.matchdayMeta}>{matchday.matches.length} Partien</span>
-                    </div>
+                  .map((matchday) => {
+                    const matchdayHeaderLabel = getMatchdayHeaderLabel(matchday);
+
+                    return (
+                      <section
+                        key={matchday.number}
+                        id={`matchday-panel-${matchday.number}`}
+                        className={styles.matchdayCard}
+                        role="tabpanel"
+                        aria-labelledby={`matchday-tab-${matchday.number}`}
+                      >
+                        <div className={styles.matchdayHeader}>
+                          <div className={styles.matchdayHeaderText}>
+                            <span className={styles.matchdayBadge}>{matchday.number}. Spieltag</span>
+                            {matchdayHeaderLabel ? (
+                              <span className={styles.matchdayLabel}>{matchdayHeaderLabel}</span>
+                            ) : null}
+                          </div>
+                          <span className={styles.matchdayMeta}>{matchday.matches.length} Partien</span>
+                        </div>
 
                     <div className={styles.matchList}>
                       {matchday.matches.map((match) => {
@@ -634,7 +899,7 @@ export default function Home() {
                               onClick={() => resetMatchResult(match.id)}
                               disabled={!editedResults[match.id]}
                               type="button"
-                              title="Tipp zuruecksetzen"
+                              title="Tipp zurücksetzen"
                             >
                               ✕
                             </button>
@@ -642,8 +907,9 @@ export default function Home() {
                         );
                       })}
                     </div>
-                  </section>
-                ))}
+                      </section>
+                    );
+                  })}
               </div>
             </div>
           </section>
@@ -652,7 +918,7 @@ export default function Home() {
         <section className={styles.emptyState}>
           <h2>Noch kein Wettbewerb geladen</h2>
           <p>
-            Importiere eine URL oder waehle einen Wettbewerb ueber die Filter, um Tabelle und Spielpaarungen zu sehen.
+            Importiere eine URL oder wähle einen Wettbewerb über die Filter, um Tabelle und Spielpaarungen zu sehen.
           </p>
         </section>
       )}
