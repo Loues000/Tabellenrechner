@@ -6,7 +6,7 @@
     <title>Tabellenrechner</title>
     <meta
       name="description"
-      content="GitHub Pages landing page for the Tabellenrechner repository."
+      content="Static handoff page for the Tabellenrechner repository with links to the live Vercel deployment."
     />
     <style>
       :root {
@@ -381,34 +381,34 @@
   <body>
     <main class="shell">
       <section class="masthead">
-        <span class="eyebrow">GitHub Pages landing page</span>
+        <span class="eyebrow">Live on Vercel</span>
         <h1>Tabellenrechner</h1>
         <p class="lede">
           This repository contains a Next.js football table calculator that imports live
-          competition data from fussball.de. GitHub Pages can show this landing page, but
-          it cannot run the actual importer application.
+          competition data from fussball.de. The production app now runs on Vercel; this
+          static page only hands off to the live deployment and the source repository.
         </p>
       </section>
 
       <section class="hero">
         <article class="panel callout">
-          <span class="warning">Why you only saw the README before</span>
-          <h2>Pages serves static files. This app needs server routes.</h2>
+          <span class="warning">Production deployment</span>
+          <h2>The real app is live on Vercel.</h2>
           <p>
-            The real app lives in <strong>webapp/</strong> and depends on Next.js API routes
-            to fetch, parse, and decode live upstream data. A GitHub Pages site configured
-            for <strong>master / (root)</strong> cannot execute that server logic, so GitHub
-            fell back to rendering the repository content instead.
+            The application lives in <strong>webapp/</strong> and depends on Next.js API
+            routes to fetch, parse, and decode live upstream data. That server-side runtime
+            is now provided by Vercel. This root page stays around only as a lightweight
+            static entry point.
           </p>
           <div class="actions">
-            <a class="button" href="https://github.com/Loues000/Tabellenrechner">
-              Open repository
+            <a class="button" href="https://tabellenrechner.vercel.app/">
+              Open live app
             </a>
             <a
               class="button-muted"
-              href="https://vercel.com/new/clone?repository-url=https://github.com/Loues000/Tabellenrechner&root-directory=webapp"
+              href="https://github.com/Loues000/Tabellenrechner"
             >
-              Deploy on Vercel
+              Open repository
             </a>
           </div>
         </article>
@@ -416,27 +416,27 @@
         <aside class="panel scorecard">
           <div class="scorecard-top">
             <span class="scorecard-label">Hosting status</span>
-            <strong>Static shell only</strong>
+            <strong>Production on Vercel</strong>
           </div>
           <div class="scoreline">
             <div class="teams">
-              <strong>GitHub Pages</strong>
+              <strong>Vercel</strong>
               <span class="vs">vs</span>
-              <strong>Next.js Server</strong>
+              <strong>Static fallback</strong>
             </div>
             <p class="scoremeta">
-              Pages can publish HTML, CSS, JS, and assets. The importer needs runtime
-              endpoints under <code>src/app/api</code>.
+              The importer needs runtime endpoints under <code>src/app/api</code>, so the
+              live service runs on Vercel and this page is only a static handoff.
             </p>
           </div>
           <div class="mini-grid">
             <div class="mini-card">
-              <span>Works on Pages</span>
-              Root landing page and documentation links
+              <span>Live now</span>
+              Full importer, competition search, and editable live table
             </div>
             <div class="mini-card">
-              <span>Needs Node hosting</span>
-              Live competition import, search bootstrap, and parsing
+              <span>Still static here</span>
+              Quick links to the deployment, repo, and local setup
             </div>
           </div>
         </aside>
@@ -444,16 +444,16 @@
 
       <section class="grid" style="margin-top: 18px;">
         <article class="panel steps">
-          <h2>What to do next</h2>
+          <h2>What to do here</h2>
           <p>
-            If you want a public version of the real Tabellenrechner, deploy the
-            <code>webapp</code> project to a server-capable host.
+            Use the live Vercel deployment if you want the actual Tabellenrechner. Use the
+            repository if you want to inspect or extend the codebase.
           </p>
           <ol>
-            <li>Deploy the repository to Vercel or another Node.js host.</li>
-            <li>Set the project root to <code>webapp</code>.</li>
-            <li>Keep the framework on Next.js auto-detect.</li>
-            <li>Use the pinned Node.js 20.x runtime and deploy.</li>
+            <li>Open the live app on Vercel.</li>
+            <li>Browse the repository and README for architecture details.</li>
+            <li>Run <code>npm run dev</code> from the repository root for local work.</li>
+            <li>Use <code>webapp</code> as the Vercel root if you create another deployment.</li>
           </ol>
         </article>
 
@@ -468,8 +468,8 @@
           <article class="panel meta-card">
             <h3>Repository layout</h3>
             <p>
-              The application code is in <code>webapp</code>. Samples and task tracking stay at
-              the repository root.
+              The application code is in <code>webapp</code>. Samples, task tracking, and this
+              static handoff page stay at the repository root.
             </p>
           </article>
           <article class="panel meta-card">

@@ -2,6 +2,13 @@
 
 Standalone web app for importing amateur football competitions from `fussball.de` and recalculating the table after manual result edits, similar to the Kicker Tabellenrechner.
 
+## Live App
+
+- Production: `https://tabellenrechner.vercel.app/`
+- Repository: `https://github.com/Loues000/Tabellenrechner`
+
+The app is now deployed on Vercel. The old GitHub Pages fallback is no longer the primary way to access the project.
+
 ## Scope
 
 - Import a competition via direct `fussball.de` URL.
@@ -13,9 +20,44 @@ Standalone web app for importing amateur football competitions from `fussball.de
 
 V1 does not include user accounts or persistence.
 
-## Workspace
+## Repository Structure
 
-The application lives in `webapp`.
+```text
+.
++-- index.html                         # static handoff page with links to the live app and repo
++-- samples/
+|   `-- fussballde/
+|       |-- css/                      # captured obfuscation-related stylesheets
+|       |-- fonts/                    # font files used for decoding
+|       |-- html/                     # captured legacy competition pages and fragments
+|       `-- wam/                      # captured WAM endpoint responses
++-- tasks/
+|   |-- lessons.md                    # durable implementation and deployment lessons
+|   `-- todo.md                       # current task tracking
+`-- webapp/
+    |-- public/                       # static assets
+    |-- src/
+    |   |-- app/
+    |   |   |-- api/
+    |   |   |   |-- competition/route.ts   # URL import endpoint
+    |   |   |   |-- search/bootstrap/route.ts
+    |   |   |   `-- search/competitions/route.ts
+    |   |   |-- globals.css
+    |   |   |-- layout.tsx
+    |   |   `-- page.tsx              # Tabellenrechner UI
+    |   `-- lib/
+    |       |-- fussballde/
+    |       |   |-- font-decoder.ts
+    |       |   |-- legacy.ts
+    |       |   |-- search.ts
+    |       |   `-- types.ts
+    |       |-- table-calculator.test.ts
+    |       `-- table-calculator.ts
+    |-- package.json
+    `-- README.md                     # workspace-specific commands and notes
+```
+
+The application itself still lives in `webapp`. Root-level npm scripts proxy into that workspace so the repo can be started from the top level.
 
 ## Tech Stack
 
@@ -26,44 +68,16 @@ The application lives in `webapp`.
 - Fontkit for `fussball.de` obfuscation-font decoding
 - Vitest for calculation tests
 
-## Project Layout
-
-```text
-samples/
-  fussballde/
-    html/                              # captured legacy pages and ajax fragments
-    css/                               # extracted obfuscation-related stylesheets
-    fonts/                             # obfuscation fonts used for decoding
-    wam/                               # captured WAM endpoint JSON responses
-webapp/
-  src/app/
-    api/competition/route.ts           # URL import endpoint
-    api/search/bootstrap/route.ts      # WAM filter bootstrap endpoint
-    api/search/competitions/route.ts   # WAM competition chooser endpoint
-    page.tsx                           # Tabellenrechner UI
-  src/lib/fussballde/
-    legacy.ts                          # legacy page parser and importer
-    search.ts                          # WAM bootstrap + competition search
-    font-decoder.ts                    # obfuscation font decoding
-    types.ts                           # shared import/result/table types
-  src/lib/
-    table-calculator.ts                # live table recomputation
-    table-calculator.test.ts           # ranking/result override tests
-```
-
-Captured `fussball.de` fixtures used during parser and decoder development live under `samples/fussballde/`, grouped by content type instead of sitting in the repository root.
-
 ## Local Development
 
 Requirements:
 
-- Node.js 20+
+- Node.js 20.x
 - npm
 
-Install and run:
+Install and run from the repository root:
 
 ```bash
-cd webapp
 npm install
 npm run dev
 ```
@@ -73,40 +87,28 @@ Then open `http://localhost:3001`.
 Useful commands:
 
 ```bash
-cd webapp
 npm run lint
 npm run test
 npm run build
 ```
 
-## Hosting
+You can also work directly inside `webapp/` if you prefer. The root scripts simply forward to that package.
 
-GitHub Pages can only serve static files from the repository. The actual Tabellenrechner in `webapp` depends on Next.js server routes under `webapp/src/app/api/*` to fetch, parse, and decode live `fussball.de` data, so GitHub Pages cannot host the full app as-is.
+## Deployment
 
-This repository now includes a root `index.html` so a Pages site based on `master/(root)` shows a proper landing page instead of rendering the README. For the live importer app itself, use a server-capable platform such as Vercel, Railway, Render, or another Node.js host.
+Production is deployed on Vercel from the `webapp` root directory.
 
-## Deploy On Vercel
+- Framework preset: `Next.js`
+- Root Directory: `webapp`
+- Node.js: `20.x`
 
-Current Vercel setup for this repository:
-
-- Import the GitHub repository as a new Vercel project.
-- Set the Root Directory to `webapp`.
-- Leave Framework Preset on `Next.js` so Vercel auto-detects the app.
-- The app pins `Node.js 20.x` in [`webapp/package.json`](./webapp/package.json) to match the tested local setup.
-
-Direct project creation link:
+If you create another Vercel project from this repository, keep the same settings:
 
 ```text
 https://vercel.com/new/clone?repository-url=https://github.com/Loues000/Tabellenrechner&root-directory=webapp
 ```
 
-If you prefer the CLI, link the monorepo from the repository root and select the `webapp` project:
-
-```bash
-npm install -g vercel
-vercel link --repo
-vercel
-```
+The root `index.html` remains as a lightweight static handoff page. The real importer depends on Next.js server routes under `webapp/src/app/api/*`, so a pure static host cannot run the full app.
 
 ## How It Works
 
@@ -120,13 +122,11 @@ If the importer cannot parse the source structurally, the app returns a clear er
 
 ## Current Status
 
-Implemented today:
-
-- URL import and WAM-based competition search
-- Legacy standings and matchday normalization
-- Obfuscation font decoding for dates and scores
-- Editable result overrides with instant table recalculation
-- Unit coverage for calculator behavior around imported results and overrides
+- URL import and WAM-based competition search are implemented.
+- Legacy standings and matchday normalization are implemented.
+- Obfuscation font decoding for dates and scores is implemented.
+- Editable result overrides recalculate the table immediately.
+- Unit coverage exists for calculator behavior around imported results and overrides.
 
 ## Notes
 
