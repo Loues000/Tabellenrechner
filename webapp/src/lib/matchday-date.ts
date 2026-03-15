@@ -1,6 +1,7 @@
 import type { ImportedMatch, Matchday } from "@/lib/fussballde/types";
 
 const DATE_PATTERN = /\b(\d{1,2})\.(\d{1,2})\.(\d{2,4})\b/;
+const TIME_PATTERN = /\b(\d{1,2}:\d{2})\b/;
 const DATE_FORMATTER = new Intl.DateTimeFormat("de-DE", {
   weekday: "short",
   day: "2-digit",
@@ -8,7 +9,7 @@ const DATE_FORMATTER = new Intl.DateTimeFormat("de-DE", {
   year: "numeric",
 });
 
-function parseKickoffDate(kickoffText: string): Date | null {
+export function parseKickoffDate(kickoffText: string): Date | null {
   const match = kickoffText.match(DATE_PATTERN);
 
   if (!match) {
@@ -33,6 +34,51 @@ function parseKickoffDate(kickoffText: string): Date | null {
   return date;
 }
 
+function getDateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+    date.getDate(),
+  ).padStart(2, "0")}`;
+}
+
+export function getKickoffDateLabel(kickoffText: string): string | null {
+  const date = parseKickoffDate(kickoffText);
+  return date ? DATE_FORMATTER.format(date) : null;
+}
+
+export function getKickoffDateKey(kickoffText: string): string | null {
+  const date = parseKickoffDate(kickoffText);
+  return date ? getDateKey(date) : null;
+}
+
+export function getKickoffTimeLabel(kickoffText: string): string {
+  const normalizedKickoff = kickoffText.trim();
+  const timeMatch = normalizedKickoff.match(TIME_PATTERN);
+
+  if (timeMatch) {
+    return timeMatch[1];
+  }
+
+  if (!normalizedKickoff || DATE_PATTERN.test(normalizedKickoff)) {
+    return "—";
+  }
+
+  return normalizedKickoff;
+}
+
+export function countMatchdayDates(matches: ImportedMatch[]): number {
+  const uniqueDates = new Set<string>();
+
+  for (const match of matches) {
+    const dateKey = getKickoffDateKey(match.kickoffText);
+
+    if (dateKey) {
+      uniqueDates.add(dateKey);
+    }
+  }
+
+  return uniqueDates.size;
+}
+
 export function summarizeMatchdayDates(matches: ImportedMatch[]): string | null {
   const uniqueDates = new Map<string, Date>();
 
@@ -43,9 +89,7 @@ export function summarizeMatchdayDates(matches: ImportedMatch[]): string | null 
       continue;
     }
 
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-      date.getDate(),
-    ).padStart(2, "0")}`;
+    const key = getDateKey(date);
 
     if (!uniqueDates.has(key)) {
       uniqueDates.set(key, date);

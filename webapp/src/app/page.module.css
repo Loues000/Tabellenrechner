@@ -12,27 +12,20 @@
 
 /* ── Info bar (replaces hero + summary cards) ── */
 .infoBar {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.infoBarBlock {
   background: var(--bg-alt);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   display: grid;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 8px 12px;
-}
-
-.infoBarBlock {
-  display: grid;
-  gap: 2px;
+  gap: 4px;
   min-width: 0;
-}
-
-.infoBarHeadingRow {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 10px;
-  justify-content: space-between;
+  padding: 10px 12px;
 }
 
 .infoBarLabel {
@@ -61,27 +54,21 @@
 }
 
 .competitionSourceLink {
-  align-items: center;
   align-self: start;
-  background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--text);
+  align-items: center;
   display: inline-flex;
   flex: 0 0 auto;
-  gap: 7px;
-  min-height: 28px;
-  padding: 4px 10px 4px 6px;
+  gap: 8px;
+  margin-top: 6px;
+  max-width: 100%;
+  text-decoration: none;
   transition:
-    background 100ms ease,
-    border-color 100ms ease,
+    opacity 100ms ease,
     transform 100ms ease;
 }
 
 .competitionSourceLink:hover {
-  background: #fff;
-  border-color: var(--accent);
-  text-decoration: none;
+  opacity: 0.8;
   transform: translateY(-1px);
 }
 
@@ -91,25 +78,18 @@
   text-decoration: none;
 }
 
-.competitionSourceBadge {
-  display: block;
-  flex: 0 0 auto;
-  height: 18px;
-  width: 18px;
-}
-
-.competitionSourceBadge svg {
-  display: block;
-  height: 100%;
-  width: 100%;
-}
-
-.competitionSourceText {
-  color: var(--text);
-  font-size: 11px;
+.competitionSourceLinkArrow {
+  color: var(--accent);
+  font-size: 14px;
   font-weight: 700;
   line-height: 1;
-  white-space: nowrap;
+}
+
+.competitionSourceLogo {
+  display: block;
+  height: auto;
+  max-width: 100%;
+  width: 142px;
 }
 
 /* ── Control grid (URL import + league search) ── */
@@ -267,26 +247,41 @@
 .textarea,
 .selectGroup select,
 .selectGroupWide select {
-  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 2px;
   color: var(--text);
   font-size: 13px;
   outline: none;
-  padding: 7px 8px;
   transition: border-color 100ms ease;
   width: 100%;
 }
 
 .textarea {
+  background: var(--bg);
   min-height: 60px;
+  padding: 7px 8px;
   resize: vertical;
+}
+
+.selectGroup select,
+.selectGroupWide select {
+  background: linear-gradient(180deg, #fff 0%, #f8f8f8 100%);
+  min-height: 44px;
+  padding: 18px 32px 7px 10px;
+  transition:
+    border-color 100ms ease,
+    background 100ms ease;
 }
 
 .textarea:focus,
 .selectGroup select:focus,
 .selectGroupWide select:focus {
   border-color: var(--accent);
+}
+
+.selectGroup select:hover,
+.selectGroupWide select:hover {
+  border-color: #c7c7c7;
 }
 
 .filterGrid {
@@ -298,14 +293,22 @@
 .selectGroup,
 .selectGroupWide {
   display: block;
+  position: relative;
 }
 
 .selectGroup span,
 .selectGroupWide span {
   display: block;
-  font-size: 11px;
-  font-weight: 500;
-  margin-bottom: 3px;
+  color: var(--text-muted);
+  font-size: 9px;
+  font-weight: 700;
+  left: 10px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  position: absolute;
+  text-transform: uppercase;
+  top: 7px;
+  z-index: 1;
 }
 
 .selectGroupWide {
@@ -322,8 +325,7 @@
 }
 
 .primaryButton,
-.secondaryButton,
-.linkButton {
+.secondaryButton {
   border-radius: 2px;
   cursor: pointer;
   display: inline-flex;
@@ -336,8 +338,7 @@
 }
 
 .primaryButton:disabled,
-.secondaryButton:disabled,
-.linkButton:disabled {
+.secondaryButton:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
@@ -363,15 +364,16 @@
   color: var(--accent);
 }
 
-.linkButton {
-  background: none;
-  border: none;
-  color: var(--accent);
-  padding: 4px 0;
+.tableResetButton {
+  background: linear-gradient(180deg, #fafafa 0%, #f1f1f1 100%);
+  border-color: #cfcfcf;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-.linkButton:hover:not(:disabled) {
-  text-decoration: underline;
+.tableResetButton:hover:not(:disabled) {
+  background: #f4f4f4;
+  border-color: var(--accent);
+  color: var(--text);
 }
 
 .dialogCloseButton {
@@ -391,11 +393,23 @@
 }
 
 .mobileImportDialog {
+  align-items: center;
   background: transparent;
   border: none;
-  max-width: min(560px, calc(100vw - 24px));
+  box-sizing: border-box;
+  inset: 0;
+  justify-items: center;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  min-height: 100dvh;
   padding: 12px;
+  position: fixed;
   width: 100%;
+}
+
+.mobileImportDialog[open] {
+  display: grid;
 }
 
 .mobileImportDialog::backdrop {
@@ -408,7 +422,9 @@
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 20px 48px rgba(15, 23, 42, 0.2);
+  max-width: min(560px, calc(100vw - 24px));
   padding: 14px;
+  width: 100%;
 }
 
 /* ── Workspace (table + matches, stacked on mobile, side-by-side on desktop) ── */
@@ -428,21 +444,20 @@
 }
 
 .tablePanelHeader {
-  align-items: center;
+  align-items: start;
   border-bottom: 3px solid var(--accent);
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
+  display: grid;
+  gap: 6px 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 10px 12px 8px;
 }
 
 .tablePanelHeading {
-  display: grid;
-  gap: 2px;
+  min-width: 0;
 }
 
 .tablePanelHeader h2 {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -450,14 +465,21 @@
 
 .adjustmentNotice {
   color: var(--text-muted);
-  font-size: 11px;
-  line-height: 1.3;
+  font-size: 12px;
+  grid-column: 1 / -1;
+  line-height: 1.35;
+  margin: 0;
 }
 
 .tablePanelActions {
-  align-items: center;
+  align-items: flex-start;
   display: flex;
-  gap: 8px;
+  justify-content: flex-end;
+  min-width: max-content;
+}
+
+.tableResetButton {
+  margin-left: 0;
 }
 
 .tableWrap {
@@ -474,8 +496,8 @@
 .table th,
 .table td {
   border-bottom: 1px solid var(--border-light);
-  font-size: 12px;
-  padding: 6px 5px;
+  font-size: 13px;
+  padding: 7px 6px;
   text-align: left;
   vertical-align: middle;
   white-space: nowrap;
@@ -484,10 +506,15 @@
 .table th {
   background: var(--bg-alt);
   color: var(--text-muted);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.table th.tableStatHeader,
+.table td.tableStatCell {
+  text-align: center;
 }
 
 .table tbody tr:nth-child(even) {
@@ -602,12 +629,13 @@
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  overscroll-behavior-x: contain;
+  overscroll-behavior: contain;
   padding: 8px 12px;
   scroll-behavior: smooth;
   scrollbar-gutter: stable both-edges;
   scrollbar-width: thin;
   scrollbar-color: var(--border) var(--bg-alt);
+  touch-action: pan-x pinch-zoom;
   -webkit-overflow-scrolling: touch;
   border-bottom: 1px solid var(--border-light);
   cursor: grab;
@@ -760,6 +788,18 @@
 .matchList {
   display: grid;
   gap: 0;
+}
+
+.matchDateSplit {
+  align-items: center;
+  background: color-mix(in srgb, var(--bg-alt) 76%, transparent);
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-muted);
+  display: flex;
+  font-size: 11px;
+  font-weight: 700;
+  min-height: 28px;
+  padding: 0 10px;
 }
 
 .matchRow {
@@ -923,6 +963,16 @@
   .colHideable {
     display: none;
   }
+
+  .table th.tableStatHeader {
+    font-size: 9px;
+    letter-spacing: 0.02em;
+    padding-inline: 7px;
+  }
+
+  .table td.tableStatCell {
+    padding-inline: 7px;
+  }
 }
 
 /* ── Tablet / small desktop (≥ 640px) ── */
@@ -1004,12 +1054,20 @@
   }
 
   .infoBar {
+    background: var(--bg-alt);
     border: 1px solid var(--border);
     border-radius: 2px;
     grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
     gap: 10px 24px;
     padding: 10px 14px;
     margin-bottom: 16px;
+  }
+
+  .infoBarBlock {
+    background: transparent;
+    border: 0;
+    gap: 2px;
+    padding: 0;
   }
 
   .infoBarValue {
@@ -1020,12 +1078,23 @@
     font-size: 13px;
   }
 
-  .competitionSourceText {
-    font-size: 12px;
+  .competitionSourceLink {
+    gap: 0;
+    max-width: 210px;
+  }
+
+  .competitionSourceLogo {
+    width: 100%;
   }
 
   .tablePanelHeader {
+    align-items: center;
+    gap: 6px 14px;
     padding: 12px 14px 10px;
+  }
+
+  .tablePanelActions {
+    align-items: center;
   }
 
   .tablePanelHeader h2 {
@@ -1092,6 +1161,12 @@
     min-height: 42px;
   }
 
+  .matchDateSplit {
+    font-size: 12px;
+    min-height: 30px;
+    padding: 0 14px;
+  }
+
   .matchKickoff {
     font-size: 12px;
     flex: 0 0 60px;
@@ -1131,7 +1206,7 @@
 
   .selectGroup span,
   .selectGroupWide span {
-    font-size: 12px;
+    font-size: 10px;
   }
 
   .filterGrid {

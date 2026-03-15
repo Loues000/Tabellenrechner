@@ -1,11 +1,11 @@
 export function getHomeScoreInputLabel(homeTeamName: string, guestTeamName: string): string {
-  return `Heimtore fuer ${homeTeamName} gegen ${guestTeamName}`;
+  return `Heimtore für ${homeTeamName} gegen ${guestTeamName}`;
 }
 
 export function getGuestScoreInputLabel(homeTeamName: string, guestTeamName: string): string {
-  return `Gasttore fuer ${guestTeamName} bei ${homeTeamName}`;
+  return `Gasttore für ${guestTeamName} bei ${homeTeamName}`;
 }
 
 export function getMatchResetLabel(homeTeamName: string, guestTeamName: string): string {
-  return `Tipp fuer ${homeTeamName} gegen ${guestTeamName} zuruecksetzen`;
+  return `Tipp für ${homeTeamName} gegen ${guestTeamName} zurücksetzen`;
 }

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { ImportedMatch, Matchday } from "@/lib/fussballde/types";
-import { getMatchdayHeaderLabel, summarizeMatchdayDates } from "./matchday-date";
+import {
+  countMatchdayDates,
+  getKickoffDateLabel,
+  getKickoffTimeLabel,
+  getMatchdayHeaderLabel,
+  summarizeMatchdayDates,
+} from "./matchday-date";
 
 function createMatch(id: string, kickoffText: string): ImportedMatch {
   return {
@@ -56,6 +62,28 @@ describe("summarizeMatchdayDates", () => {
         createMatch("m4", "Mi. 11.03.2026 | 19:30"),
       ]),
     ).toBe(`4 Termine: ${formatDate(2026, 2, 1)} bis ${formatDate(2026, 2, 11)}`);
+  });
+});
+
+describe("kickoff row helpers", () => {
+  it("extracts a formatted split label from dated kickoff text", () => {
+    expect(getKickoffDateLabel("So. 01.03.2026 | 11:00")).toBe(formatDate(2026, 2, 1));
+  });
+
+  it("keeps only the time part for per-match display", () => {
+    expect(getKickoffTimeLabel("So. 01.03.2026 | 11:00")).toBe("11:00");
+    expect(getKickoffTimeLabel("13:15")).toBe("13:15");
+    expect(getKickoffTimeLabel("")).toBe("—");
+  });
+
+  it("counts unique dates for deciding whether split rows are needed", () => {
+    expect(
+      countMatchdayDates([
+        createMatch("m1", "So. 01.03.2026 | 11:00"),
+        createMatch("m2", "13:15"),
+        createMatch("m3", "Mi. 04.03.2026 | 19:30"),
+      ]),
+    ).toBe(2);
   });
 });
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Image from "next/image";
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from "react";
 import { startTransition, useEffect, useEffectEvent, useRef, useState } from "react";
@@ -24,7 +25,13 @@ import {
   getHomeScoreInputLabel,
   getMatchResetLabel,
 } from "@/lib/match-accessibility";
-import { getMatchdayHeaderLabel } from "@/lib/matchday-date";
+import {
+  countMatchdayDates,
+  getKickoffDateKey,
+  getKickoffDateLabel,
+  getKickoffTimeLabel,
+  getMatchdayHeaderLabel,
+} from "@/lib/matchday-date";
 
 const SAMPLE_URL =
   "https://www.fussball.de/spieltag/kreisliga-b-gruppe-1-kreis-essen-kreisliga-b-herren-saison2526-niederrhein/-/spieldatum/2026-03-15/staffel/02TMJM5PBK00000AVS5489BUVSSD35NB-G#!/";
@@ -62,6 +69,10 @@ function normalizeMetaValue(value: string): string {
   return value.trim().toLocaleLowerCase("de-DE");
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
 function formatCompetitionRegion(competition: Competition): string {
   const area = competition.area.trim();
   const association = competition.association.trim();
@@ -83,23 +94,6 @@ type MatchdayRailDragState = {
   startScrollLeft: number;
   hasDragged: boolean;
 };
-
-function FussballDeIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 18 18">
-      <rect x="0.75" y="0.75" width="16.5" height="16.5" rx="4" fill="var(--accent)" />
-      <path
-        d="M4.75 4.75h8.5v8.5h-8.5zM9 4.75v8.5M4.75 9h8.5M6.4 6.3c.8.45 1.7.68 2.6.68s1.8-.23 2.6-.68M6.4 11.7c.8-.45 1.7-.68 2.6-.68s1.8.23 2.6.68"
-        fill="none"
-        stroke="#fff"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.1"
-      />
-      <circle cx="9" cy="9" r="1.4" fill="none" stroke="#fff" strokeWidth="1.1" />
-    </svg>
-  );
-}
 
 export default function Home() {
   const matchdayRailRef = useRef<HTMLDivElement | null>(null);
@@ -395,14 +389,12 @@ export default function Home() {
       return;
     }
 
-    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
-      return;
-    }
+    const horizontalDelta =
+      Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    const maxScrollLeft = rail.scrollWidth - rail.clientWidth;
+    const nextScrollLeft = clamp(rail.scrollLeft + horizontalDelta, 0, maxScrollLeft);
 
-    rail.scrollBy({
-      left: event.deltaY,
-      behavior: "auto",
-    });
+    rail.scrollLeft = nextScrollLeft;
     event.preventDefault();
   }
 
@@ -552,7 +544,7 @@ export default function Home() {
             disabled={isImporting}
             type="button"
           >
-            {isImporting ? "Import laeuft..." : "Staffel laden"}
+            {isImporting ? "Import läuft..." : "Staffel laden"}
           </button>
           <button
             className={styles.secondaryButton}
@@ -572,8 +564,7 @@ export default function Home() {
       return (
         <div className={styles.desktopImportInline}>
           <div className={styles.desktopImportInlineCopy}>
-            <span className={styles.desktopImportInlineLabel}>Direktimport</span>
-            <strong className={styles.desktopImportInlineTitle}>Link schon vorhanden? Per URL laden.</strong>
+            <strong className={styles.desktopImportInlineTitle}>Oder per URL laden</strong>
           </div>
           <div className={styles.desktopImportInlineActions}>
             <button className={styles.secondaryButton} onClick={openDesktopUrlImport} type="button">
@@ -589,7 +580,6 @@ export default function Home() {
       <div className={styles.desktopImportExpanded}>
         <div className={styles.desktopImportExpandedHeader}>
           <div className={styles.desktopImportInlineCopy}>
-            <span className={styles.desktopImportInlineLabel}>Direktimport</span>
             <strong className={styles.desktopImportInlineTitle}>Wettbewerb per URL laden</strong>
           </div>
           <button className={styles.secondaryButton} onClick={closeDesktopUrlImport} type="button">
@@ -609,22 +599,20 @@ export default function Home() {
     return (
       <>
         <p className={styles.panelText}>
-          Die Auswahl verwendet die WAM-Endpunkte von fussball.de und führt über Verband,
-          Saison, Mannschaftsart, Liga und Gebiet.
+          Wähle Verband, Saison und Liga, um einen Wettbewerb zu laden.
         </p>
         <div className={styles.desktopOnly}>{renderDesktopUrlImportPanel()}</div>
         <div className={styles.mobileOnly}>
           <div className={styles.mobileImportInline}>
             <div className={styles.mobileImportInlineCopy}>
-              <span className={styles.mobileImportInlineLabel}>Alternativ</span>
-              <strong className={styles.mobileImportInlineTitle}>Wettbewerb direkt per URL laden</strong>
+              <strong className={styles.mobileImportInlineTitle}>Oder per URL laden</strong>
             </div>
             <button
               className={`${styles.secondaryButton} ${styles.mobileImportInlineButton}`}
               onClick={openUrlImportDialog}
               type="button"
             >
-              URL einfuegen
+              URL einfügen
             </button>
           </div>
           {!isUrlImportDialogOpen && importError ? <p className={styles.error}>{importError}</p> : null}
@@ -699,15 +687,14 @@ export default function Home() {
         <div className={styles.mobileImportDialogCard}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelKicker}>Direktimport</span>
-              <h2 id="mobile-url-import-title">Wettbewerbs-URL einfuegen</h2>
+              <h2 id="mobile-url-import-title">Wettbewerb per URL laden</h2>
             </div>
             <button
               className={`${styles.secondaryButton} ${styles.dialogCloseButton}`}
               onClick={closeUrlImportDialog}
               type="button"
             >
-              Schliessen
+              Schließen
             </button>
           </div>
           {renderUrlImportControls("competition-url-mobile")}
@@ -718,8 +705,7 @@ export default function Home() {
         <article className={styles.panel}>
           <div className={styles.panelHeader}>
             <div>
-              <span className={styles.panelKicker}>Liga-Suche</span>
-              <h2>Wettbewerb über Filter finden</h2>
+              <h2>Wettbewerb finden</h2>
             </div>
           </div>
           {renderSearchPanelContent()}
@@ -731,27 +717,33 @@ export default function Home() {
           {/* ── Compact info bar ── */}
           <div className={styles.infoBar}>
             <div className={styles.infoBarBlock}>
-              <span className={styles.infoBarLabel}>Wettbewerb</span>
-              <div className={styles.infoBarHeadingRow}>
-                <strong className={styles.infoBarValue}>{competition.name}</strong>
-                <a
-                  className={styles.competitionSourceLink}
-                  href={competition.sourceCompetitionUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label={`${competition.name} bei fussball.de oeffnen`}
-                  title="Wettbewerb bei fussball.de oeffnen"
-                >
-                  <span className={styles.competitionSourceBadge}>
-                    <FussballDeIcon />
-                  </span>
-                  <span className={styles.competitionSourceText}>fussball.de</span>
-                </a>
-              </div>
+              <strong className={styles.infoBarValue}>{competition.name}</strong>
               <span className={styles.infoBarMeta}>{competitionMeta}</span>
+              <a
+                className={styles.competitionSourceLink}
+                href={competition.sourceCompetitionUrl}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${competition.name} bei fussball.de öffnen`}
+                title="Wettbewerb bei fussball.de öffnen"
+              >
+                <Image
+                  className={styles.competitionSourceLogo}
+                  src="/fussball-de.svg"
+                  alt="fussball.de"
+                  width={719}
+                  height={62}
+                  priority={false}
+                />
+                <span
+                  aria-hidden="true"
+                  className={`${styles.competitionSourceLinkArrow} ${styles.mobileOnly}`}
+                >
+                  ↗
+                </span>
+              </a>
             </div>
             <div className={styles.infoBarBlock}>
-              <span className={styles.infoBarLabel}>Rechner</span>
               <span className={styles.infoBarMeta}>{competitionStats}</span>
               <span className={styles.infoBarMeta}>
                 <strong className={styles.infoBarAccent}>{activeEdits} Änderungen</strong>,{" "}
@@ -767,23 +759,10 @@ export default function Home() {
               <div className={styles.tablePanelHeader}>
                 <div className={styles.tablePanelHeading}>
                   <h2>Tabelle</h2>
-                  {showAdjustmentNotice ? (
-                    <p className={styles.adjustmentNotice}>
-                      Offizielle Korrekturen aus der Ursprungstabelle sind beruecksichtigt.
-                    </p>
-                  ) : null}
                 </div>
                 <div className={styles.tablePanelActions}>
-                  <a
-                    className={styles.linkButton}
-                    href={competition.sourceCompetitionUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Original ↗
-                  </a>
                   <button
-                    className={styles.secondaryButton}
+                    className={`${styles.secondaryButton} ${styles.tableResetButton}`}
                     onClick={() => setEditedResults({})}
                     disabled={!activeEdits}
                     type="button"
@@ -791,6 +770,11 @@ export default function Home() {
                     Zurücksetzen
                   </button>
                 </div>
+                {showAdjustmentNotice ? (
+                  <p className={styles.adjustmentNotice}>
+                    Offizielle Tabellenkorrekturen sind berücksichtigt.
+                  </p>
+                ) : null}
               </div>
 
               <div className={styles.tableWrap}>
@@ -799,13 +783,13 @@ export default function Home() {
                     <tr>
                       <th>Pl.</th>
                       <th>Vereine</th>
-                      <th>Sp.</th>
+                      <th className={styles.tableStatHeader}>Sp.</th>
                       <th className={styles.colHideable} title="Siege">S</th>
                       <th className={styles.colHideable} title="Unentschieden">U</th>
                       <th className={styles.colHideable} title="Niederlagen">N</th>
-                      <th>Tore</th>
-                      <th>+/-</th>
-                      <th>Pkt.</th>
+                      <th className={styles.tableStatHeader}>Tore</th>
+                      <th className={styles.tableStatHeader}>+/-</th>
+                      <th className={styles.tableStatHeader}>Pkt.</th>
                       <th></th>
                     </tr>
                   </thead>
@@ -831,13 +815,13 @@ export default function Home() {
                               <span className={styles.teamNameText}>{row.teamName}</span>
                             </div>
                           </td>
-                          <td>{row.games}</td>
+                          <td className={styles.tableStatCell}>{row.games}</td>
                           <td className={styles.colHideable}>{row.wins}</td>
                           <td className={styles.colHideable}>{row.draws}</td>
                           <td className={styles.colHideable}>{row.losses}</td>
-                          <td>{row.goalsFor}:{row.goalsAgainst}</td>
-                          <td>{signedDelta(row.goalDifference)}</td>
-                          <td className={styles.pointsCell}>{row.points}</td>
+                          <td className={styles.tableStatCell}>{row.goalsFor}:{row.goalsAgainst}</td>
+                          <td className={styles.tableStatCell}>{signedDelta(row.goalDifference)}</td>
+                          <td className={`${styles.pointsCell} ${styles.tableStatCell}`}>{row.points}</td>
                           <td>
                             <span
                               className={
@@ -868,8 +852,7 @@ export default function Home() {
               <div className={styles.matchesPanelHeader}>
                 <h2>Spielpaarungen</h2>
                 <p className={styles.matchesPanelHint}>
-                  Spieltag wählen, durchklicken und Ergebnisse direkt anpassen. Leere Felder
-                  entfernen den Tipp.
+                  Spieltag wählen und Ergebnisse anpassen.
                 </p>
               </div>
 
@@ -953,6 +936,8 @@ export default function Home() {
                   .filter((matchday) => matchday.number === activeMatchday?.number)
                   .map((matchday) => {
                     const matchdayHeaderLabel = getMatchdayHeaderLabel(matchday);
+                    const showMatchDateSplits = countMatchdayDates(matchday.matches) > 1;
+                    let activeMatchDateKey: string | null = null;
 
                     return (
                       <section
@@ -982,11 +967,29 @@ export default function Home() {
                             : match.isBye
                               ? "frei"
                               : "-:-";
+                        const kickoffDateKey = getKickoffDateKey(match.kickoffText);
+                        const kickoffDateLabel = getKickoffDateLabel(match.kickoffText);
+                        const showDateSplit =
+                          showMatchDateSplits &&
+                          kickoffDateKey !== null &&
+                          kickoffDateLabel !== null &&
+                          kickoffDateKey !== activeMatchDateKey;
+
+                        if (kickoffDateKey) {
+                          activeMatchDateKey = kickoffDateKey;
+                        }
 
                         return (
-                          <div key={`${matchday.number}-${match.id}`} className={styles.matchRow}>
+                          <Fragment key={`${matchday.number}-${match.id}`}>
+                            {showDateSplit ? (
+                              <div className={styles.matchDateSplit}>
+                                <span>{kickoffDateLabel}</span>
+                              </div>
+                            ) : null}
+
+                            <div className={styles.matchRow}>
                             <span className={styles.matchKickoff}>
-                              {match.kickoffText || "—"}
+                              {getKickoffTimeLabel(match.kickoffText)}
                             </span>
 
                             <span className={styles.matchHome}>{match.homeTeamName}</span>
@@ -1055,7 +1058,8 @@ export default function Home() {
                             >
                               ✕
                             </button>
-                          </div>
+                            </div>
+                          </Fragment>
                         );
                       })}
                     </div>
