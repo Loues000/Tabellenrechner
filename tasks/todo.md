@@ -32,6 +32,8 @@
 - [x] Add a GitHub Pages landing page and document that the live Next.js importer needs a server-capable host.
 - [x] Prepare the repo for Vercel deployment with explicit `webapp` root-directory guidance and pinned Node major version.
 - [x] Add Vercel Analytics to the deployed Next.js app layout.
+- [x] Add SEO basics for Google discovery: canonical metadata, robots, sitemap, and a crawlable landing headline.
+- [x] Add env-backed site URL and Google Search Console verification support for Vercel deployments.
 - [x] Add a direct `fussball.de` link for the currently selected competition in the compact info bar.
 - [x] Refresh the README and structure notes now that production runs on Vercel instead of the old GitHub Pages placeholder.
 - [x] Polish mobile table headers, compact filter dropdown labels, and table reset emphasis.

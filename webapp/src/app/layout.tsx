@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { Roboto_Condensed, Roboto } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+import { siteConfig } from "@/lib/site";
 
 const headingFont = Roboto_Condensed({
   variable: "--font-heading",
@@ -15,13 +17,73 @@ const bodyFont = Roboto({
   weight: ["400", "500"],
 });
 
-const REPO_URL = "https://github.com/Loues000/Tabellenrechner";
+const REPO_URL = siteConfig.repoUrl;
 const ISSUES_URL = `${REPO_URL}/issues`;
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: siteConfig.name,
+  applicationCategory: "UtilitiesApplication",
+  operatingSystem: "Any",
+  inLanguage: "de-DE",
+  url: siteConfig.url,
+  description: siteConfig.description,
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "EUR",
+  },
+  sameAs: [siteConfig.repoUrl],
+  featureList: [
+    "Wettbewerbe von fussball.de importieren",
+    "Spielergebnisse frei bearbeiten",
+    "Live-Tabelle sofort neu berechnen",
+    "Spieltage und Paarungen übersichtlich prüfen",
+  ],
+} as const;
+
 export const metadata: Metadata = {
-  title: "Tabellenrechner für fussball.de",
-  description:
-    "Importiert Wettbewerbe von fussball.de und berechnet eine Live-Tabelle aus frei editierbaren Spielergebnissen.",
+  metadataBase: new URL(siteConfig.url),
+  applicationName: siteConfig.shortName,
+  title: {
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.shortName}`,
+  },
+  description: siteConfig.description,
+  keywords: [...siteConfig.keywords],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: siteConfig.locale,
+    url: siteConfig.url,
+    siteName: siteConfig.shortName,
+    title: siteConfig.name,
+    description: siteConfig.description,
+  },
+  twitter: {
+    card: "summary",
+    title: siteConfig.name,
+    description: siteConfig.description,
+  },
+  verification: siteConfig.googleSiteVerification
+    ? {
+        google: siteConfig.googleSiteVerification,
+      }
+    : undefined,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -32,6 +94,11 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body className={`${headingFont.variable} ${bodyFont.variable}`}>
+        <Script
+          id="structured-data"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         <div className="siteShell">
           <header className="siteHeader">
             <div className="siteHeaderInner">

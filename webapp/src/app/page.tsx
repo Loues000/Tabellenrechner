@@ -679,6 +679,16 @@ export default function Home() {
 
   return (
     <main className={styles.page}>
+      <section className={styles.intro} aria-labelledby="page-title">
+        <p className={styles.introEyebrow}>Amateurfußball</p>
+        <h1 id="page-title" className={styles.introTitle}>
+          Tabellenrechner für fussball.de-Wettbewerbe
+        </h1>
+        <p className={styles.introText}>
+          Importiere Staffeln von fussball.de, bearbeite Ergebnisse spieltagsgenau und sieh
+          sofort, wie sich die Live-Tabelle verändert.
+        </p>
+      </section>
       <dialog
         ref={urlImportDialogRef}
         className={styles.mobileImportDialog}

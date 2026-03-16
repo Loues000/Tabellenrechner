@@ -9,6 +9,42 @@
   max-width: 1280px;
 }
 
+.intro {
+  background:
+    linear-gradient(135deg, rgba(224, 36, 36, 0.06), transparent 45%),
+    linear-gradient(180deg, #fff 0%, #faf7f4 100%);
+  border-top: 1px solid var(--border);
+  border-bottom: 3px solid var(--accent);
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 14px 12px;
+}
+
+.introEyebrow {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.introTitle {
+  color: var(--text);
+  font-size: clamp(1.7rem, 4vw, 2.4rem);
+  line-height: 1.05;
+  margin: 0;
+}
+
+.introText {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 68ch;
+}
+
 /* ── Info bar (replaces hero + summary cards) ── */
 .infoBar {
   display: grid;
@@ -1014,6 +1050,14 @@
 
   .desktopOnly {
     display: block;
+  }
+
+  .intro {
+    padding: 18px 18px 16px;
+  }
+
+  .introText {
+    font-size: 14px;
   }
 
   .controlGrid {
