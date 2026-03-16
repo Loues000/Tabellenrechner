@@ -6,6 +6,7 @@ This workspace contains the production Next.js application behind the Tabellenre
 
 - Live app: `https://tabellenrechner.vercel.app/`
 - Vercel root directory: `webapp`
+- SEO env example: `.env.example`
 
 ## Responsibilities
 
@@ -27,6 +28,17 @@ npm run build
 ```
 
 The development server runs on `http://localhost:3001`.
+
+## Search Console / Domain Setup
+
+Set these environment variables in Vercel for the production deployment:
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://your-domain.example
+GOOGLE_SITE_VERIFICATION=your-google-token
+```
+
+`NEXT_PUBLIC_SITE_URL` drives canonical metadata, `robots.txt`, and `sitemap.xml`. `GOOGLE_SITE_VERIFICATION` adds the Google ownership meta tag for Search Console.
 
 ## Structure
 

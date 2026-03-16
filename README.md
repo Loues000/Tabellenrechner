@@ -101,6 +101,8 @@ Production is deployed on Vercel from the `webapp` root directory.
 - Framework preset: `Next.js`
 - Root Directory: `webapp`
 - Node.js: `20.x`
+- Production URL env: `NEXT_PUBLIC_SITE_URL`
+- Search Console verification env: `GOOGLE_SITE_VERIFICATION`
 
 If you create another Vercel project from this repository, keep the same settings:
 
@@ -109,6 +111,18 @@ https://vercel.com/new/clone?repository-url=https://github.com/Loues000/Tabellen
 ```
 
 The root `index.html` remains as a lightweight static handoff page. The real importer depends on Next.js server routes under `webapp/src/app/api/*`, so a pure static host cannot run the full app.
+
+### Google Search / Custom Domain
+
+To make the app discoverable in Google with a stable canonical URL:
+
+1. Add your production domain in Vercel and make it the primary domain.
+2. Set `NEXT_PUBLIC_SITE_URL` in the Vercel project to that exact `https://...` URL.
+3. Add the site in Google Search Console.
+4. Copy the Google verification token into `GOOGLE_SITE_VERIFICATION` in Vercel.
+5. Re-deploy and submit `/sitemap.xml` in Search Console.
+
+For local setup, see `webapp/.env.example`.
 
 ## How It Works
 
