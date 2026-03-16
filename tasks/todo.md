@@ -41,4 +41,5 @@
 - [x] Reduce the mobile competition info density and make the `fussball.de` source clearly tappable.
 - [x] Flatten the competition source link styling and remove the redundant `Wettbewerb` label.
 - [x] Polish the Tabellenrechner UI (redundancy cleanup, user-friendly copy).
+- [x] Remove the outer page padding from the Tabellenrechner page module.
 - [ ] Add table and matchlist affordances for truncated content, trend explanation, withdrawn-team hints, dark mode, and CSV export.
