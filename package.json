@@ -1,6 +1,9 @@
 {
   "name": "tabellenrechner",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "npm --prefix webapp run dev",
     "build": "npm --prefix webapp run build",

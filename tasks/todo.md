@@ -31,6 +31,7 @@
 - [x] Harden URL imports, table baseline integrity, font-cache recovery, and score-input accessibility.
 - [x] Add a GitHub Pages landing page and document that the live Next.js importer needs a server-capable host.
 - [x] Prepare the repo for Vercel deployment with explicit `webapp` root-directory guidance and pinned Node major version.
+- [x] Add Vercel Analytics to the deployed Next.js app layout.
 - [x] Add a direct `fussball.de` link for the currently selected competition in the compact info bar.
 - [x] Refresh the README and structure notes now that production runs on Vercel instead of the old GitHub Pages placeholder.
 - [x] Polish mobile table headers, compact filter dropdown labels, and table reset emphasis.
@@ -42,4 +43,5 @@
 - [x] Flatten the competition source link styling and remove the redundant `Wettbewerb` label.
 - [x] Polish the Tabellenrechner UI (redundancy cleanup, user-friendly copy).
 - [x] Remove the outer page padding from the Tabellenrechner page module.
+- [x] Align the repository-level Node version with the webapp and Vercel deployment target.
 - [ ] Add table and matchlist affordances for truncated content, trend explanation, withdrawn-team hints, dark mode, and CSV export.
