@@ -93,7 +93,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <body className={`${headingFont.variable} ${bodyFont.variable}`}>
+      <body
+        className={`${headingFont.variable} ${bodyFont.variable}`}
+        suppressHydrationWarning
+      >
         <Script
           id="structured-data"
           type="application/ld+json"

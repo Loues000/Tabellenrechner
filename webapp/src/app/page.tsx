@@ -104,6 +104,12 @@ type MatchdayRailDragState = {
   hasDragged: boolean;
 };
 
+type TeamMatchGroup = {
+  matchdayNumber: number;
+  headerDateLabel: string | null;
+  matches: Competition["matchdays"][number]["matches"];
+};
+
 export default function Home() {
   const matchdayRailRef = useRef<HTMLDivElement | null>(null);
   const matchdayTabRefs = useRef<Record<number, HTMLButtonElement | null>>({});
@@ -121,6 +127,7 @@ export default function Home() {
   const [isMatchdayRailDragging, setIsMatchdayRailDragging] = useState(false);
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [activeMatchdayNumber, setActiveMatchdayNumber] = useState<number | null>(null);
+  const [activeTeamId, setActiveTeamId] = useState<string | null>(null);
   const [editedResults, setEditedResults] = useState<EditableResultMap>({});
   const [searchError, setSearchError] = useState<string | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
@@ -150,11 +157,13 @@ export default function Home() {
   useEffect(() => {
     if (!competition) {
       setActiveMatchdayNumber(null);
+      setActiveTeamId(null);
       return;
     }
 
     setIsMobileInlineUrlExpanded(false);
     setActiveMatchdayNumber(findCurrentMatchdayNumber(competition));
+    setActiveTeamId(null);
   }, [competition]);
 
   useEffect(() => {
@@ -518,6 +527,47 @@ export default function Home() {
         : 0
       : -1;
   const activeMatchday = normalizedActiveMatchdayIndex >= 0 ? matchdays[normalizedActiveMatchdayIndex] : null;
+  const selectedTeam = activeTeamId
+    ? computedTable.find((row) => row.teamId === activeTeamId) ??
+      competition?.importedTable.find((row) => row.teamId === activeTeamId) ??
+      null
+    : null;
+  function getTeamMatchdayLabel(
+    matches: Competition["matchdays"][number]["matches"],
+    fallbackMatches: Competition["matchdays"][number]["matches"],
+  ): string | null {
+    const teamDates = [...new Set(matches.map((match) => getKickoffDateLabel(match.kickoffText)).filter(Boolean))];
+
+    if (teamDates.length > 0) {
+      return teamDates.join(" / ");
+    }
+
+    const fallbackDates = [
+      ...new Set(fallbackMatches.map((match) => getKickoffDateLabel(match.kickoffText)).filter(Boolean)),
+    ];
+
+    return fallbackDates[0] ?? null;
+  }
+
+  const selectedTeamMatchGroups: TeamMatchGroup[] = activeTeamId
+    ? matchdays
+        .map((matchday) => {
+          const matches = matchday.matches.filter(
+            (match) => match.homeTeamId === activeTeamId || match.guestTeamId === activeTeamId,
+          );
+
+          if (!matches.length) {
+            return null;
+          }
+
+          return {
+            matchdayNumber: matchday.number,
+            headerDateLabel: getTeamMatchdayLabel(matches, matchday.matches),
+            matches,
+          };
+        })
+        .filter((group): group is TeamMatchGroup => group !== null)
+    : [];
   const competitionMeta = competition
     ? [competition.season, competition.teamType, formatCompetitionRegion(competition)]
         .filter(Boolean)
@@ -544,6 +594,110 @@ export default function Home() {
       ? `${competitions.length} Wettbewerbe verfügbar`
       : "Noch kein Wettbewerb ausgewählt";
   const shouldCollapseMobileSearch = competition !== null;
+
+  function renderMatchRows(
+    matchdayNumber: number,
+    matches: Competition["matchdays"][number]["matches"],
+    options?: { showDateSplits?: boolean },
+  ) {
+    const showMatchDateSplits = options?.showDateSplits ?? countMatchdayDates(matches) > 1;
+    let activeMatchDateKey: string | null = null;
+
+    return (
+      <div className={styles.matchList}>
+        {matches.map((match) => {
+          const effectiveResult = getEffectiveResult(match, editedResults);
+          const pending = hasPendingEdit(match, editedResults);
+          const originalResult =
+            match.originalResult.home !== null && match.originalResult.guest !== null
+              ? `${match.originalResult.home}:${match.originalResult.guest}`
+              : match.isBye
+                ? "frei"
+                : "-:-";
+          const kickoffDateKey = getKickoffDateKey(match.kickoffText);
+          const kickoffDateLabel = getKickoffDateLabel(match.kickoffText);
+          const showDateSplit =
+            showMatchDateSplits &&
+            kickoffDateKey !== null &&
+            kickoffDateLabel !== null &&
+            kickoffDateKey !== activeMatchDateKey;
+
+          if (kickoffDateKey) {
+            activeMatchDateKey = kickoffDateKey;
+          }
+
+          return (
+            <Fragment key={`${matchdayNumber}-${match.id}`}>
+              {showDateSplit ? (
+                <div className={styles.matchDateSplit}>
+                  <span>{kickoffDateLabel}</span>
+                </div>
+              ) : null}
+
+              <div className={styles.matchRow}>
+                <span className={styles.matchKickoff}>{getKickoffTimeLabel(match.kickoffText)}</span>
+
+                <span className={styles.matchHome}>{match.homeTeamName}</span>
+
+                <div className={styles.scoreInputGroup}>
+                  <input
+                    className={styles.scoreInput}
+                    type="text"
+                    inputMode="numeric"
+                    aria-label={getHomeScoreInputLabel(match.homeTeamName, match.guestTeamName)}
+                    value={editedResults[match.id]?.home ?? ""}
+                    onChange={(event) => updateMatchResult(match.id, "home", event.target.value)}
+                    placeholder={match.originalResult.home !== null ? String(match.originalResult.home) : "-"}
+                    disabled={match.isBye}
+                  />
+                  <span className={styles.scoreColon}>:</span>
+                  <input
+                    className={styles.scoreInput}
+                    type="text"
+                    inputMode="numeric"
+                    aria-label={getGuestScoreInputLabel(match.homeTeamName, match.guestTeamName)}
+                    value={editedResults[match.id]?.guest ?? ""}
+                    onChange={(event) => updateMatchResult(match.id, "guest", event.target.value)}
+                    placeholder={match.originalResult.guest !== null ? String(match.originalResult.guest) : "-"}
+                    disabled={match.isBye}
+                  />
+                </div>
+
+                <span className={styles.matchGuest}>{match.guestTeamName}</span>
+
+                <span className={styles.matchOriginal}>{originalResult}</span>
+
+                <span className={styles.matchStatus}>
+                  <span
+                    className={
+                      pending
+                        ? styles.matchStatePending
+                        : effectiveResult.home === null || effectiveResult.guest === null
+                          ? styles.matchStateOpen
+                          : styles.matchStateReady
+                    }
+                  >
+                    {pending ? "···" : effectiveResult.home === null || effectiveResult.guest === null ? "" : "✓"}
+                  </span>
+                </span>
+
+                <button
+                  className={styles.matchReset}
+                  onClick={() => resetMatchResult(match.id)}
+                  disabled={!editedResults[match.id]}
+                  type="button"
+                  aria-label={getMatchResetLabel(match.homeTeamName, match.guestTeamName)}
+                  title="Tipp zurücksetzen"
+                >
+                  ✕
+                </button>
+              </div>
+            </Fragment>
+          );
+        })}
+      </div>
+    );
+  }
 
   function renderUrlImportControls(fieldId: string, showIntroText = false) {
     return (
@@ -898,24 +1052,39 @@ export default function Home() {
                   <tbody>
                     {computedTable.map((row) => {
                       const delta = getTableDelta(row, competition.importedTable);
+                      const isTeamActive = row.teamId === activeTeamId;
                       return (
-                        <tr key={row.teamId}>
+                        <tr key={row.teamId} className={isTeamActive ? styles.tableRowActive : undefined}>
                           <td className={styles.rankCell}>{row.rank}.</td>
                           <td className={styles.teamCell}>
-                            <div className={styles.teamCellContent}>
-                              {row.teamLogoUrl ? (
-                                <Image
-                                  className={styles.teamLogo}
-                                  src={row.teamLogoUrl}
-                                  alt=""
-                                  width={20}
-                                  height={20}
-                                  sizes="20px"
-                                  unoptimized
-                                />
-                              ) : null}
-                              <span className={styles.teamNameText}>{row.teamName}</span>
-                            </div>
+                            <button
+                              className={`${styles.teamFocusButton} ${isTeamActive ? styles.teamFocusButtonActive : ""}`}
+                              onClick={() =>
+                                setActiveTeamId((current) => (current === row.teamId ? null : row.teamId))
+                              }
+                              type="button"
+                              aria-pressed={isTeamActive}
+                              title={
+                                isTeamActive
+                                  ? `${row.teamName} ausblenden`
+                                  : `Alle Spiele von ${row.teamName} anzeigen`
+                              }
+                            >
+                              <div className={styles.teamCellContent}>
+                                {row.teamLogoUrl ? (
+                                  <Image
+                                    className={styles.teamLogo}
+                                    src={row.teamLogoUrl}
+                                    alt=""
+                                    width={20}
+                                    height={20}
+                                    sizes="20px"
+                                    unoptimized
+                                  />
+                                ) : null}
+                                <span className={styles.teamNameText}>{row.teamName}</span>
+                              </div>
+                            </button>
                           </td>
                           <td className={`${styles.tableStatCell} ${styles.mobileOptionalStat}`}>
                             {row.games}
@@ -954,226 +1123,152 @@ export default function Home() {
             {/* ── Matches (Spielpaarungen) ── */}
             <div className={styles.matchesPanel}>
               <div className={styles.matchesPanelHeader}>
-                <h2>Spielpaarungen</h2>
+                <div className={styles.matchesPanelHeading}>
+                  <h2>{selectedTeam ? `Spiele von ${selectedTeam.teamName}` : "Spielpaarungen"}</h2>
+                  {selectedTeam ? (
+                    <button
+                      className={styles.matchesModeReset}
+                      onClick={() => setActiveTeamId(null)}
+                      type="button"
+                    >
+                      Alle Spieltage
+                    </button>
+                  ) : null}
+                </div>
                 <p className={styles.matchesPanelHint}>
-                  Spieltag wählen, horizontal wischen und Ergebnisse anpassen.
+                  {selectedTeam
+                    ? "Alle Partien dieses Vereins, Ergebnisse direkt bearbeitbar."
+                    : "Spieltag wählen, horizontal wischen und Ergebnisse anpassen."}
                 </p>
               </div>
 
-              <div className={styles.matchdayToolbar}>
-                <div className={styles.matchdayRailMeta}>
-                  <span className={styles.matchdayRailMetaLabel}>Spieltage</span>
-                  <span className={styles.matchdayRailMetaHint}>Links/rechts wischen oder tippen</span>
-                </div>
-                <div
-                  ref={matchdayRailRef}
-                  className={`${styles.matchdayRail} ${
-                    isMatchdayRailDragging ? styles.matchdayRailDragging : ""
-                  }`}
-                  role="tablist"
-                  aria-label="Spieltage"
-                  onWheel={handleMatchdayRailWheel}
-                  onPointerDown={handleMatchdayRailPointerDown}
-                  onPointerMove={handleMatchdayRailPointerMove}
-                  onPointerUp={handleMatchdayRailPointerUp}
-                  onPointerCancel={handleMatchdayRailPointerCancel}
-                  onLostPointerCapture={handleMatchdayRailLostPointerCapture}
-                  onClickCapture={handleMatchdayRailClickCapture}
-                >
-                  {matchdays.map((matchday) => {
-                    const isActive = matchday.number === activeMatchday?.number;
-
-                    return (
-                      <button
-                        ref={(element) => {
-                          matchdayTabRefs.current[matchday.number] = element;
-                        }}
-                        key={matchday.number}
-                        id={`matchday-tab-${matchday.number}`}
-                        data-matchday-number={matchday.number}
-                        className={`${styles.matchdayTab} ${isActive ? styles.matchdayTabActive : ""}`}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        aria-controls={`matchday-panel-${matchday.number}`}
-                        onClick={() => setActiveMatchdayNumber(matchday.number)}
-                      >
-                        <span>{matchday.number}. Spieltag</span>
-                        <strong>{matchday.matches.length} Partien</strong>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className={styles.matchdayNav}>
-                  <button
-                    className={styles.matchdayNavButton}
-                    onClick={() =>
-                      normalizedActiveMatchdayIndex > 0 &&
-                      setActiveMatchdayNumber(
-                        matchdays[normalizedActiveMatchdayIndex - 1].number,
-                      )
-                    }
-                    disabled={normalizedActiveMatchdayIndex <= 0}
-                    type="button"
-                  >
-                    Vorheriger
-                  </button>
-                  <span className={styles.matchdayCounter}>
-                    {normalizedActiveMatchdayIndex + 1} / {matchdays.length}
-                  </span>
-                  <button
-                    className={styles.matchdayNavButton}
-                    onClick={() =>
-                      normalizedActiveMatchdayIndex >= 0 &&
-                      normalizedActiveMatchdayIndex < matchdays.length - 1 &&
-                      setActiveMatchdayNumber(
-                        matchdays[normalizedActiveMatchdayIndex + 1].number,
-                      )
-                    }
-                    disabled={normalizedActiveMatchdayIndex >= matchdays.length - 1}
-                    type="button"
-                  >
-                    Nächster
-                  </button>
-                </div>
-              </div>
-
               <div className={styles.matchdayList}>
-                {matchdays
-                  .filter((matchday) => matchday.number === activeMatchday?.number)
-                  .map((matchday) => {
-                    const matchdayHeaderLabel = getMatchdayHeaderLabel(matchday);
-                    const showMatchDateSplits = countMatchdayDates(matchday.matches) > 1;
-                    let activeMatchDateKey: string | null = null;
-
-                    return (
-                      <section
-                        key={matchday.number}
-                        id={`matchday-panel-${matchday.number}`}
-                        className={styles.matchdayCard}
-                        role="tabpanel"
-                        aria-labelledby={`matchday-tab-${matchday.number}`}
-                      >
-                        <div className={styles.matchdayHeader}>
-                          <div className={styles.matchdayHeaderText}>
-                            <span className={styles.matchdayBadge}>{matchday.number}. Spieltag</span>
-                            {matchdayHeaderLabel ? (
-                              <span className={styles.matchdayLabel}>{matchdayHeaderLabel}</span>
-                            ) : null}
-                          </div>
-                          <span className={styles.matchdayMeta}>{matchday.matches.length} Partien</span>
+                {selectedTeam ? (
+                  selectedTeamMatchGroups.map((group) => (
+                    <section
+                      key={`${selectedTeam.teamId}-${group.matchdayNumber}`}
+                      className={styles.matchdayCard}
+                    >
+                      <div className={`${styles.matchdayHeader} ${styles.matchdayHeaderCompact}`}>
+                        <div className={styles.matchdayHeaderText}>
+                          <span className={styles.matchdayBadge}>{group.matchdayNumber}. Spieltag</span>
+                          {group.headerDateLabel ? (
+                            <span className={styles.matchdayLabel}>{group.headerDateLabel}</span>
+                          ) : null}
                         </div>
+                      </div>
+                      {renderMatchRows(group.matchdayNumber, group.matches, { showDateSplits: false })}
+                    </section>
+                  ))
+                ) : (
+                  <>
+                    <div className={styles.matchdayToolbar}>
+                      <div className={styles.matchdayRailMeta}>
+                        <span className={styles.matchdayRailMetaLabel}>Spieltage</span>
+                        <span className={styles.matchdayRailMetaHint}>Links/rechts wischen oder tippen</span>
+                      </div>
+                      <div
+                        ref={matchdayRailRef}
+                        className={`${styles.matchdayRail} ${
+                          isMatchdayRailDragging ? styles.matchdayRailDragging : ""
+                        }`}
+                        role="tablist"
+                        aria-label="Spieltage"
+                        onWheel={handleMatchdayRailWheel}
+                        onPointerDown={handleMatchdayRailPointerDown}
+                        onPointerMove={handleMatchdayRailPointerMove}
+                        onPointerUp={handleMatchdayRailPointerUp}
+                        onPointerCancel={handleMatchdayRailPointerCancel}
+                        onLostPointerCapture={handleMatchdayRailLostPointerCapture}
+                        onClickCapture={handleMatchdayRailClickCapture}
+                      >
+                        {matchdays.map((matchday) => {
+                          const isActive = matchday.number === activeMatchday?.number;
 
-                    <div className={styles.matchList}>
-                      {matchday.matches.map((match) => {
-                        const effectiveResult = getEffectiveResult(match, editedResults);
-                        const pending = hasPendingEdit(match, editedResults);
-                        const originalResult =
-                          match.originalResult.home !== null && match.originalResult.guest !== null
-                            ? `${match.originalResult.home}:${match.originalResult.guest}`
-                            : match.isBye
-                              ? "frei"
-                              : "-:-";
-                        const kickoffDateKey = getKickoffDateKey(match.kickoffText);
-                        const kickoffDateLabel = getKickoffDateLabel(match.kickoffText);
-                        const showDateSplit =
-                          showMatchDateSplits &&
-                          kickoffDateKey !== null &&
-                          kickoffDateLabel !== null &&
-                          kickoffDateKey !== activeMatchDateKey;
+                          return (
+                            <button
+                              ref={(element) => {
+                                matchdayTabRefs.current[matchday.number] = element;
+                              }}
+                              key={matchday.number}
+                              id={`matchday-tab-${matchday.number}`}
+                              data-matchday-number={matchday.number}
+                              className={`${styles.matchdayTab} ${isActive ? styles.matchdayTabActive : ""}`}
+                              type="button"
+                              role="tab"
+                              aria-selected={isActive}
+                              aria-controls={`matchday-panel-${matchday.number}`}
+                              onClick={() => setActiveMatchdayNumber(matchday.number)}
+                            >
+                              <span>{matchday.number}. Spieltag</span>
+                              <strong>{matchday.matches.length} Partien</strong>
+                            </button>
+                          );
+                        })}
+                      </div>
 
-                        if (kickoffDateKey) {
-                          activeMatchDateKey = kickoffDateKey;
-                        }
+                      <div className={styles.matchdayNav}>
+                        <button
+                          className={styles.matchdayNavButton}
+                          onClick={() =>
+                            normalizedActiveMatchdayIndex > 0 &&
+                            setActiveMatchdayNumber(
+                              matchdays[normalizedActiveMatchdayIndex - 1].number,
+                            )
+                          }
+                          disabled={normalizedActiveMatchdayIndex <= 0}
+                          type="button"
+                        >
+                          Vorheriger
+                        </button>
+                        <span className={styles.matchdayCounter}>
+                          {normalizedActiveMatchdayIndex + 1} / {matchdays.length}
+                        </span>
+                        <button
+                          className={styles.matchdayNavButton}
+                          onClick={() =>
+                            normalizedActiveMatchdayIndex >= 0 &&
+                            normalizedActiveMatchdayIndex < matchdays.length - 1 &&
+                            setActiveMatchdayNumber(
+                              matchdays[normalizedActiveMatchdayIndex + 1].number,
+                            )
+                          }
+                          disabled={normalizedActiveMatchdayIndex >= matchdays.length - 1}
+                          type="button"
+                        >
+                          Nächster
+                        </button>
+                      </div>
+                    </div>
+
+                    {matchdays
+                      .filter((matchday) => matchday.number === activeMatchday?.number)
+                      .map((matchday) => {
+                        const matchdayHeaderLabel = getMatchdayHeaderLabel(matchday);
 
                         return (
-                          <Fragment key={`${matchday.number}-${match.id}`}>
-                            {showDateSplit ? (
-                              <div className={styles.matchDateSplit}>
-                                <span>{kickoffDateLabel}</span>
+                          <section
+                            key={matchday.number}
+                            id={`matchday-panel-${matchday.number}`}
+                            className={styles.matchdayCard}
+                            role="tabpanel"
+                            aria-labelledby={`matchday-tab-${matchday.number}`}
+                          >
+                            <div className={styles.matchdayHeader}>
+                              <div className={styles.matchdayHeaderText}>
+                                <span className={styles.matchdayBadge}>{matchday.number}. Spieltag</span>
+                                {matchdayHeaderLabel ? (
+                                  <span className={styles.matchdayLabel}>{matchdayHeaderLabel}</span>
+                                ) : null}
                               </div>
-                            ) : null}
-
-                            <div className={styles.matchRow}>
-                            <span className={styles.matchKickoff}>
-                              {getKickoffTimeLabel(match.kickoffText)}
-                            </span>
-
-                            <span className={styles.matchHome}>{match.homeTeamName}</span>
-
-                            <div className={styles.scoreInputGroup}>
-                              <input
-                                className={styles.scoreInput}
-                                type="text"
-                                inputMode="numeric"
-                                aria-label={getHomeScoreInputLabel(match.homeTeamName, match.guestTeamName)}
-                                value={editedResults[match.id]?.home ?? ""}
-                                onChange={(event) => updateMatchResult(match.id, "home", event.target.value)}
-                                placeholder={
-                                  match.originalResult.home !== null
-                                    ? String(match.originalResult.home)
-                                    : "-"
-                                }
-                                disabled={match.isBye}
-                              />
-                              <span className={styles.scoreColon}>:</span>
-                              <input
-                                className={styles.scoreInput}
-                                type="text"
-                                inputMode="numeric"
-                                aria-label={getGuestScoreInputLabel(match.homeTeamName, match.guestTeamName)}
-                                value={editedResults[match.id]?.guest ?? ""}
-                                onChange={(event) => updateMatchResult(match.id, "guest", event.target.value)}
-                                placeholder={
-                                  match.originalResult.guest !== null
-                                    ? String(match.originalResult.guest)
-                                    : "-"
-                                }
-                                disabled={match.isBye}
-                              />
+                              <span className={styles.matchdayMeta}>{matchday.matches.length} Partien</span>
                             </div>
-
-                            <span className={styles.matchGuest}>{match.guestTeamName}</span>
-
-                            <span className={styles.matchOriginal}>{originalResult}</span>
-
-                            <span className={styles.matchStatus}>
-                              <span
-                                className={
-                                  pending
-                                    ? styles.matchStatePending
-                                    : effectiveResult.home === null || effectiveResult.guest === null
-                                      ? styles.matchStateOpen
-                                      : styles.matchStateReady
-                                }
-                              >
-                                {pending
-                                  ? "···"
-                                  : effectiveResult.home === null || effectiveResult.guest === null
-                                    ? ""
-                                    : "✓"}
-                              </span>
-                            </span>
-
-                            <button
-                              className={styles.matchReset}
-                              onClick={() => resetMatchResult(match.id)}
-                              disabled={!editedResults[match.id]}
-                              type="button"
-                              aria-label={getMatchResetLabel(match.homeTeamName, match.guestTeamName)}
-                              title="Tipp zurücksetzen"
-                            >
-                              ✕
-                            </button>
-                            </div>
-                          </Fragment>
+                            {renderMatchRows(matchday.number, matchday.matches)}
+                          </section>
                         );
                       })}
-                    </div>
-                      </section>
-                    );
-                  })}
+                  </>
+                )}
               </div>
             </div>
           </section>

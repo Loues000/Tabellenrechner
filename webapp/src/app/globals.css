@@ -116,7 +116,6 @@ textarea {
 .siteFooter {
   background: linear-gradient(180deg, #fafafa 0%, #f1f1f1 100%);
   border-top: 1px solid var(--border);
-  margin-top: 10px;
 }
 
 .siteFooterInner {

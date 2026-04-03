@@ -44,6 +44,7 @@
 - [x] Reduce the mobile competition info density and make the `fussball.de` source clearly tappable.
 - [x] Flatten the competition source link styling and remove the redundant `Wettbewerb` label.
 - [x] Polish the Tabellenrechner UI (redundancy cleanup, user-friendly copy).
+- [x] Add a clickable club focus so selecting a team in the table shows all of that club's matches with editable results.
 - [x] Remove the outer page padding from the Tabellenrechner page module.
 - [x] Align the repository-level Node version with the webapp and Vercel deployment target.
 - [x] Tighten the mobile spacing rhythm so section cards, match rows, and headers feel denser on small screens.
@@ -53,4 +54,5 @@
 - [x] Replace the always-open mobile pre-import URL block with a compact expandable direct-import card.
 - [x] Tighten the remaining mobile spacing between intro, competition picker, info modules, and matchday sections.
 - [x] Prevent duplicated rescheduled matches from being counted twice in the live table when fussball.de lists the same fixture in multiple matchdays.
+- [x] Suppress hydration mismatches on the root body when browser extensions inject client-only attributes.
 - [ ] Add table and matchlist affordances for truncated content, trend explanation, withdrawn-team hints, dark mode, and CSV export.

@@ -635,10 +635,48 @@
   text-overflow: ellipsis;
 }
 
+.tableRowActive {
+  background: color-mix(in srgb, var(--accent) 10%, #fff) !important;
+}
+
+.teamFocusButton {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.teamFocusButton:hover .teamNameText,
+.teamFocusButton:focus-visible .teamNameText {
+  color: var(--accent);
+}
+
+.teamFocusButton:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, white);
+  outline-offset: 2px;
+}
+
+.teamFocusButtonActive .teamNameText {
+  color: var(--accent);
+}
+
 .teamCellContent {
   align-items: center;
   display: flex;
   gap: 8px;
+  min-width: 0;
+}
+
+.teamTextWrap {
+  display: grid;
+  gap: 1px;
   min-width: 0;
 }
 
@@ -658,6 +696,14 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.mobileGamesStat {
+  color: var(--text-light);
+  display: none;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .pointsCell {
@@ -706,11 +752,35 @@
   padding: 6px 10px 4px;
 }
 
+.matchesPanelHeading {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
 .matchesPanelHeader h2 {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+}
+
+.matchesModeReset {
+  background: color-mix(in srgb, var(--accent) 8%, #fff);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  border-radius: 999px;
+  color: var(--accent);
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  min-height: 30px;
+  padding: 0 12px;
+}
+
+.matchesModeReset:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 14%, #fff);
 }
 
 .matchesPanelHint {
@@ -879,21 +949,21 @@
   align-items: center;
   background: var(--bg-alt);
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: space-between;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-bottom: 1px solid var(--border-light);
 }
 
 .matchdayHeaderText {
   display: grid;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 
 .matchdayBadge {
   color: var(--text);
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -901,13 +971,17 @@
 
 .matchdayLabel {
   color: var(--text-muted);
-  font-size: 11px;
-  line-height: 1.35;
+  font-size: 10px;
+  line-height: 1.2;
 }
 
 .matchdayMeta {
   color: var(--text-light);
-  font-size: 11px;
+  font-size: 10px;
+}
+
+.matchdayHeaderCompact {
+  padding-block: 2px;
 }
 
 /* ── Match rows ── */
@@ -1089,10 +1163,6 @@
 /* ── Tiny mobile only (< 500px): hide S/U/N columns ── */
 @media (max-width: 499px) {
   .colHideable {
-    display: none;
-  }
-
-  .mobileOptionalStat {
     display: none;
   }
 
@@ -1291,6 +1361,10 @@
     font-size: 14px;
   }
 
+  .matchesModeReset {
+    min-height: 32px;
+  }
+
   .table th,
   .table td {
     font-size: 13px;
@@ -1326,11 +1400,23 @@
   }
 
   .matchdayHeader {
-    padding: 14px 16px;
+    padding: 8px 12px;
   }
 
   .matchdayBadge {
+    font-size: 10px;
+  }
+
+  .matchdayLabel {
     font-size: 11px;
+  }
+
+  .matchdayMeta {
+    font-size: 11px;
+  }
+
+  .matchdayHeaderCompact {
+    padding-block: 5px;
   }
 
   .matchList {
