@@ -52,4 +52,5 @@
 - [x] Keep the mobile pre-import flow direct and collapse filters only after a competition is loaded.
 - [x] Replace the always-open mobile pre-import URL block with a compact expandable direct-import card.
 - [x] Tighten the remaining mobile spacing between intro, competition picker, info modules, and matchday sections.
+- [x] Prevent duplicated rescheduled matches from being counted twice in the live table when fussball.de lists the same fixture in multiple matchdays.
 - [ ] Add table and matchlist affordances for truncated content, trend explanation, withdrawn-team hints, dark mode, and CSV export.

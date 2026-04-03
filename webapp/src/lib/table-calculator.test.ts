@@ -143,6 +143,40 @@ describe("recalculateTable", () => {
     expect(table.map((row) => row.points)).toEqual([4, 1, 0]);
   });
 
+  it("counts rescheduled duplicate fixtures only once when the same match id appears in multiple matchdays", () => {
+    const duplicatedCompetition: Competition = {
+      ...competition,
+      matchdays: [
+        competition.matchdays[0],
+        {
+          ...competition.matchdays[1],
+          matches: [
+            {
+              ...competition.matchdays[0].matches[0],
+              id: "m1",
+              matchday: 2,
+              kickoffText: "Mi. 11.09.2025 | 19:30",
+            },
+            competition.matchdays[1].matches[0],
+            competition.matchdays[1].matches[1],
+          ],
+        },
+      ],
+    };
+
+    expect(recalculateTable(duplicatedCompetition, {}).map((row) => row.points)).toEqual([4, 3, 1]);
+
+    const editedTable = recalculateTable(duplicatedCompetition, {
+      m1: { home: "0", guest: "2" },
+    });
+
+    expect(editedTable.map((row) => `${row.rank}-${row.teamName}-${row.points}`)).toEqual([
+      "1-Team B-6",
+      "2-Team A-1",
+      "3-Team C-1",
+    ]);
+  });
+
   it("preserves official table adjustments in the baseline standings", () => {
     const adjustedCompetition: Competition = {
       ...competition,

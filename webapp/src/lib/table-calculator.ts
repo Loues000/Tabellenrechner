@@ -134,12 +134,19 @@ export function recalculateTableFromResults(
   edits: EditableResultMap,
 ): TableRow[] {
   const table = toTableSeed(competition);
+  const countedMatchIds = new Set<string>();
 
   for (const matchday of competition.matchdays) {
     for (const match of matchday.matches) {
       if (match.isBye) {
         continue;
       }
+
+      if (countedMatchIds.has(match.id)) {
+        continue;
+      }
+
+      countedMatchIds.add(match.id);
 
       const result = getEffectiveResult(match, edits);
 
