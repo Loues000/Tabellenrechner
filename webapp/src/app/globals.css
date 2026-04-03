@@ -83,14 +83,14 @@ textarea {
   gap: 8px;
   margin: 0 auto;
   max-width: 1280px;
-  padding: 10px 16px;
+  padding: 8px 12px;
 }
 
 .siteWordmark {
   border-left: 3px solid var(--accent);
   color: var(--text);
   font-family: var(--font-heading), "Roboto Condensed", Arial, sans-serif;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: 0.02em;
   padding-left: 8px;
@@ -99,7 +99,7 @@ textarea {
 
 .siteSub {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .siteShell {
@@ -116,7 +116,7 @@ textarea {
 .siteFooter {
   background: linear-gradient(180deg, #fafafa 0%, #f1f1f1 100%);
   border-top: 1px solid var(--border);
-  margin-top: 28px;
+  margin-top: 10px;
 }
 
 .siteFooterInner {
@@ -128,7 +128,7 @@ textarea {
   justify-content: center;
   margin: 0 auto;
   max-width: 1280px;
-  padding: 14px 16px 18px;
+  padding: 12px 12px 14px;
   text-align: center;
 }
 
@@ -139,14 +139,14 @@ textarea {
   border-radius: 999px;
   color: var(--text-muted);
   display: inline-flex;
-  height: 40px;
+  height: 36px;
   justify-content: center;
   transition:
     border-color 120ms ease,
     color 120ms ease,
     transform 120ms ease,
     background 120ms ease;
-  width: 40px;
+  width: 36px;
 }
 
 .siteFooterIconLink:hover {
@@ -166,6 +166,38 @@ textarea {
 
 .siteFooterIconLink svg {
   display: block;
-  height: 18px;
-  width: 18px;
+  height: 16px;
+  width: 16px;
+}
+
+@media (min-width: 900px) {
+  .siteHeaderInner {
+    padding: 10px 16px;
+  }
+
+  .siteWordmark {
+    font-size: 18px;
+  }
+
+  .siteSub {
+    font-size: 13px;
+  }
+
+  .siteFooter {
+    margin-top: 28px;
+  }
+
+  .siteFooterInner {
+    padding: 14px 16px 18px;
+  }
+
+  .siteFooterIconLink {
+    height: 40px;
+    width: 40px;
+  }
+
+  .siteFooterIconLink svg {
+    height: 18px;
+    width: 18px;
+  }
 }

@@ -9,6 +9,7 @@ import type {
   Competition,
   CompetitionOption,
   EditableResultMap,
+  Option,
   SearchBootstrap,
   SearchFilters,
 } from "@/lib/fussballde/types";
@@ -88,6 +89,14 @@ function formatCompetitionRegion(competition: Competition): string {
   return `${area} (${association})`;
 }
 
+function getOptionLabel(options: Option[], value: string): string | null {
+  if (!value) {
+    return null;
+  }
+
+  return options.find((option) => option.id === value)?.label ?? null;
+}
+
 type MatchdayRailDragState = {
   pointerId: number;
   startClientX: number;
@@ -100,13 +109,14 @@ export default function Home() {
   const matchdayTabRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const matchdayRailDragRef = useRef<MatchdayRailDragState | null>(null);
   const suppressMatchdayRailClickUntilRef = useRef(0);
-  const urlImportDialogRef = useRef<HTMLDialogElement | null>(null);
+  const filterDialogRef = useRef<HTMLDialogElement | null>(null);
   const [bootstrap, setBootstrap] = useState<SearchBootstrap | null>(null);
   const [filters, setFilters] = useState<SearchFilters>(EMPTY_FILTERS);
   const [competitions, setCompetitions] = useState<CompetitionOption[]>([]);
   const [selectedCompetitionUrl, setSelectedCompetitionUrl] = useState("");
   const [urlInput, setUrlInput] = useState(SAMPLE_URL);
-  const [isUrlImportDialogOpen, setIsUrlImportDialogOpen] = useState(false);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [isMobileInlineUrlExpanded, setIsMobileInlineUrlExpanded] = useState(false);
   const [isDesktopUrlImportExpanded, setIsDesktopUrlImportExpanded] = useState(false);
   const [isMatchdayRailDragging, setIsMatchdayRailDragging] = useState(false);
   const [competition, setCompetition] = useState<Competition | null>(null);
@@ -143,6 +153,7 @@ export default function Home() {
       return;
     }
 
+    setIsMobileInlineUrlExpanded(false);
     setActiveMatchdayNumber(findCurrentMatchdayNumber(competition));
   }, [competition]);
 
@@ -165,14 +176,14 @@ export default function Home() {
   }, [activeMatchdayNumber, competition?.id]);
 
   useEffect(() => {
-    const dialog = urlImportDialogRef.current;
+    const dialog = filterDialogRef.current;
 
     if (!dialog) {
       return;
     }
 
     const syncDialogState = () => {
-      setIsUrlImportDialogOpen(dialog.open);
+      setIsFilterDialogOpen(dialog.open);
     };
 
     dialog.addEventListener("close", syncDialogState);
@@ -193,8 +204,8 @@ export default function Home() {
         return;
       }
 
-      urlImportDialogRef.current?.close();
-      setIsUrlImportDialogOpen(false);
+      filterDialogRef.current?.close();
+      setIsFilterDialogOpen(false);
     };
 
     mediaQuery.addEventListener("change", handleViewportChange);
@@ -312,29 +323,13 @@ export default function Home() {
         setIsDesktopUrlImportExpanded(false);
       }
 
-      urlImportDialogRef.current?.close();
-      setIsUrlImportDialogOpen(false);
+      filterDialogRef.current?.close();
+      setIsFilterDialogOpen(false);
     } catch (error) {
       setImportError(error instanceof Error ? error.message : "Der Wettbewerb konnte nicht importiert werden.");
     } finally {
       setIsImporting(false);
     }
-  }
-
-  function openUrlImportDialog() {
-    const dialog = urlImportDialogRef.current;
-
-    if (!dialog || dialog.open) {
-      return;
-    }
-
-    dialog.showModal();
-    setIsUrlImportDialogOpen(true);
-  }
-
-  function closeUrlImportDialog() {
-    urlImportDialogRef.current?.close();
-    setIsUrlImportDialogOpen(false);
   }
 
   function openDesktopUrlImport() {
@@ -343,6 +338,22 @@ export default function Home() {
 
   function closeDesktopUrlImport() {
     setIsDesktopUrlImportExpanded(false);
+  }
+
+  function openFilterDialog() {
+    const dialog = filterDialogRef.current;
+
+    if (!dialog || dialog.open) {
+      return;
+    }
+
+    dialog.showModal();
+    setIsFilterDialogOpen(true);
+  }
+
+  function closeFilterDialog() {
+    filterDialogRef.current?.close();
+    setIsFilterDialogOpen(false);
   }
 
   function updateFilters(patch: Partial<SearchFilters>) {
@@ -516,6 +527,23 @@ export default function Home() {
     ? `${competition.matchdays.length} Spieltage, ${importedMatchCount} Spiele`
     : "";
   const showAdjustmentNotice = competition ? hasTableAdjustments(competition) : false;
+  const selectedCompetitionLabel =
+    competitions.find((option) => option.url === selectedCompetitionUrl)?.label ?? null;
+  const selectedFilterSummary =
+    [
+      getOptionLabel(bootstrap?.associations ?? [], filters.associationId),
+      getOptionLabel(bootstrap?.seasons ?? [], filters.seasonId),
+      getOptionLabel(bootstrap?.areas ?? [], filters.areaId),
+    ]
+      .filter(Boolean)
+      .join(" · ") || "Filter öffnen und Wettbewerb auswählen";
+  const mobileFilterSummary = selectedCompetitionLabel ?? selectedFilterSummary;
+  const mobileFilterMeta = isLoadingCompetitionList
+    ? "Wettbewerbe werden geladen..."
+    : competitions.length
+      ? `${competitions.length} Wettbewerbe verfügbar`
+      : "Noch kein Wettbewerb ausgewählt";
+  const shouldCollapseMobileSearch = competition !== null;
 
   function renderUrlImportControls(fieldId: string, showIntroText = false) {
     return (
@@ -556,6 +584,69 @@ export default function Home() {
         </div>
         {importError ? <p className={styles.error}>{importError}</p> : null}
       </>
+    );
+  }
+
+  function renderSearchFilterFields() {
+    return (
+      <div className={styles.filterGrid}>
+        {searchSelects.map(({ label, key, options }) => (
+          <label key={key} className={styles.selectGroup}>
+            <span>{label}</span>
+            <select
+              value={filters[key]}
+              onChange={(event) =>
+                updateFilters({ [key]: event.target.value } as Partial<SearchFilters>)
+              }
+              disabled={!bootstrap || isBootstrapping}
+            >
+              {options.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ))}
+
+        <label className={styles.selectGroupWide}>
+          <span>Wettbewerb</span>
+          <select
+            value={selectedCompetitionUrl}
+            onChange={(event) => setSelectedCompetitionUrl(event.target.value)}
+            disabled={isLoadingCompetitionList || !competitions.length}
+          >
+            <option value="">
+              {isLoadingCompetitionList
+                ? "Wettbewerbe laden..."
+                : competitions.length
+                  ? "Wettbewerb wählen"
+                  : "Noch kein Wettbewerb verfügbar"}
+            </option>
+            {competitions.map((option) => (
+              <option key={option.url} value={option.url}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    );
+  }
+
+  function renderSearchImportAction() {
+    return (
+      <div className={styles.inlineActions}>
+        <button
+          className={`${styles.primaryButton} ${styles.searchImportButton}`}
+          onClick={() => void importCompetition(selectedCompetitionUrl, "search")}
+          disabled={!selectedCompetitionUrl || isImporting}
+          type="button"
+        >
+          Auswahl importieren
+        </button>
+        {isBootstrapping ? <span className={styles.statusNote}>Filter aktualisieren...</span> : null}
+      </div>
     );
   }
 
@@ -602,77 +693,65 @@ export default function Home() {
           Wähle Verband, Saison und Liga, um einen Wettbewerb zu laden.
         </p>
         <div className={styles.desktopOnly}>{renderDesktopUrlImportPanel()}</div>
+        <div className={styles.desktopOnly}>
+          {renderSearchFilterFields()}
+          {renderSearchImportAction()}
+          {searchError ? <p className={styles.error}>{searchError}</p> : null}
+        </div>
         <div className={styles.mobileOnly}>
-          <div className={styles.mobileImportInline}>
-            <div className={styles.mobileImportInlineCopy}>
-              <strong className={styles.mobileImportInlineTitle}>Oder per URL laden</strong>
+          {shouldCollapseMobileSearch ? (
+            <>
+              <div className={styles.mobileFilterLauncher}>
+                <div className={styles.mobileFilterLauncherCopy}>
+                  <strong className={styles.mobileFilterLauncherTitle}>Wettbewerb auswählen</strong>
+                  <span className={styles.mobileFilterLauncherValue}>{mobileFilterSummary}</span>
+                  <span className={styles.mobileFilterLauncherMeta}>{mobileFilterMeta}</span>
+                </div>
+                <button
+                  className={`${styles.primaryButton} ${styles.mobileFilterLauncherButton}`}
+                  onClick={openFilterDialog}
+                  type="button"
+                >
+                  Filter
+                </button>
+              </div>
+              {!isFilterDialogOpen && isBootstrapping ? (
+                <span className={styles.statusNote}>Filter aktualisieren...</span>
+              ) : null}
+              {!isFilterDialogOpen && searchError ? <p className={styles.error}>{searchError}</p> : null}
+            </>
+          ) : (
+            <div className={styles.mobileSearchInline}>
+              <div className={styles.filterDialogSection}>
+                {renderSearchFilterFields()}
+                {renderSearchImportAction()}
+                {searchError ? <p className={styles.error}>{searchError}</p> : null}
+              </div>
+              <div className={styles.filterDialogSection}>
+                <div className={styles.mobileInlineUrlCard}>
+                  <div className={styles.mobileInlineUrlCopy}>
+                    <p className={styles.filterDialogDividerLabel}>Oder per URL laden</p>
+                    <p className={styles.mobileInlineUrlHint}>
+                      Direktimport für klassische fussball.de- und next.fussball.de-Links.
+                    </p>
+                  </div>
+                  <button
+                    className={styles.secondaryButton}
+                    onClick={() => setIsMobileInlineUrlExpanded((current) => !current)}
+                    type="button"
+                  >
+                    {isMobileInlineUrlExpanded ? "Einklappen" : "URL einfügen"}
+                  </button>
+                </div>
+                {isMobileInlineUrlExpanded ? (
+                  <div className={styles.mobileInlineUrlForm}>
+                    {renderUrlImportControls("competition-url-mobile-inline")}
+                  </div>
+                ) : null}
+              </div>
             </div>
-            <button
-              className={`${styles.secondaryButton} ${styles.mobileImportInlineButton}`}
-              onClick={openUrlImportDialog}
-              type="button"
-            >
-              URL einfügen
-            </button>
-          </div>
-          {!isUrlImportDialogOpen && importError ? <p className={styles.error}>{importError}</p> : null}
+          )}
         </div>
-
-        <div className={styles.filterGrid}>
-          {searchSelects.map(({ label, key, options }) => (
-            <label key={key} className={styles.selectGroup}>
-              <span>{label}</span>
-              <select
-                value={filters[key]}
-                onChange={(event) =>
-                  updateFilters({ [key]: event.target.value } as Partial<SearchFilters>)
-                }
-                disabled={!bootstrap || isBootstrapping}
-              >
-                {options.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
-
-          <label className={styles.selectGroupWide}>
-            <span>Wettbewerb</span>
-            <select
-              value={selectedCompetitionUrl}
-              onChange={(event) => setSelectedCompetitionUrl(event.target.value)}
-              disabled={isLoadingCompetitionList || !competitions.length}
-            >
-              <option value="">
-                {isLoadingCompetitionList
-                  ? "Wettbewerbe laden..."
-                  : competitions.length
-                    ? "Wettbewerb wählen"
-                    : "Noch kein Wettbewerb verfügbar"}
-              </option>
-              {competitions.map((option) => (
-                <option key={option.url} value={option.url}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className={styles.inlineActions}>
-          <button
-            className={styles.primaryButton}
-            onClick={() => void importCompetition(selectedCompetitionUrl, "search")}
-            disabled={!selectedCompetitionUrl || isImporting}
-            type="button"
-          >
-            Auswahl importieren
-          </button>
-          {isBootstrapping ? <span className={styles.statusNote}>Filter aktualisieren...</span> : null}
-        </div>
-        {searchError ? <p className={styles.error}>{searchError}</p> : null}
       </>
     );
   }
@@ -690,24 +769,35 @@ export default function Home() {
         </p>
       </section>
       <dialog
-        ref={urlImportDialogRef}
-        className={styles.mobileImportDialog}
-        aria-labelledby="mobile-url-import-title"
+        ref={filterDialogRef}
+        className={styles.mobileFilterDialog}
+        aria-labelledby="mobile-filter-title"
       >
-        <div className={styles.mobileImportDialogCard}>
+        <div className={styles.mobileFilterDialogCard}>
           <div className={styles.panelHeader}>
             <div>
-              <h2 id="mobile-url-import-title">Wettbewerb per URL laden</h2>
+              <h2 id="mobile-filter-title">Filter &amp; Wettbewerb</h2>
             </div>
             <button
               className={`${styles.secondaryButton} ${styles.dialogCloseButton}`}
-              onClick={closeUrlImportDialog}
+              onClick={closeFilterDialog}
               type="button"
             >
               Schließen
             </button>
           </div>
-          {renderUrlImportControls("competition-url-mobile")}
+          <p className={styles.panelText}>
+            Filter anpassen, Wettbewerb auswählen und direkt importieren.
+          </p>
+          <div className={styles.filterDialogSection}>
+            {renderSearchFilterFields()}
+            {renderSearchImportAction()}
+            {searchError ? <p className={styles.error}>{searchError}</p> : null}
+          </div>
+          <div className={styles.filterDialogSection}>
+            <p className={styles.filterDialogDividerLabel}>Oder per URL laden</p>
+            {renderUrlImportControls("competition-url-mobile", true)}
+          </div>
         </div>
       </dialog>
       {/* ── Import controls ── */}
@@ -793,7 +883,9 @@ export default function Home() {
                     <tr>
                       <th>Pl.</th>
                       <th>Vereine</th>
-                      <th className={styles.tableStatHeader}>Sp.</th>
+                      <th className={`${styles.tableStatHeader} ${styles.mobileOptionalStat}`}>
+                        Sp.
+                      </th>
                       <th className={styles.colHideable} title="Siege">S</th>
                       <th className={styles.colHideable} title="Unentschieden">U</th>
                       <th className={styles.colHideable} title="Niederlagen">N</th>
@@ -825,7 +917,9 @@ export default function Home() {
                               <span className={styles.teamNameText}>{row.teamName}</span>
                             </div>
                           </td>
-                          <td className={styles.tableStatCell}>{row.games}</td>
+                          <td className={`${styles.tableStatCell} ${styles.mobileOptionalStat}`}>
+                            {row.games}
+                          </td>
                           <td className={styles.colHideable}>{row.wins}</td>
                           <td className={styles.colHideable}>{row.draws}</td>
                           <td className={styles.colHideable}>{row.losses}</td>
@@ -862,11 +956,15 @@ export default function Home() {
               <div className={styles.matchesPanelHeader}>
                 <h2>Spielpaarungen</h2>
                 <p className={styles.matchesPanelHint}>
-                  Spieltag wählen und Ergebnisse anpassen.
+                  Spieltag wählen, horizontal wischen und Ergebnisse anpassen.
                 </p>
               </div>
 
               <div className={styles.matchdayToolbar}>
+                <div className={styles.matchdayRailMeta}>
+                  <span className={styles.matchdayRailMetaLabel}>Spieltage</span>
+                  <span className={styles.matchdayRailMetaHint}>Links/rechts wischen oder tippen</span>
+                </div>
                 <div
                   ref={matchdayRailRef}
                   className={`${styles.matchdayRail} ${

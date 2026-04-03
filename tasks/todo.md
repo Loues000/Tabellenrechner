@@ -46,4 +46,10 @@
 - [x] Polish the Tabellenrechner UI (redundancy cleanup, user-friendly copy).
 - [x] Remove the outer page padding from the Tabellenrechner page module.
 - [x] Align the repository-level Node version with the webapp and Vercel deployment target.
+- [x] Tighten the mobile spacing rhythm so section cards, match rows, and headers feel denser on small screens.
+- [x] Refine the mobile Tabellenrechner UX with a collapsed filter sheet, tighter spacing, clearer matchday navigation, and a leaner table.
+- [x] Move the mobile URL import into the same filter sheet as the competition selection.
+- [x] Keep the mobile pre-import flow direct and collapse filters only after a competition is loaded.
+- [x] Replace the always-open mobile pre-import URL block with a compact expandable direct-import card.
+- [x] Tighten the remaining mobile spacing between intro, competition picker, info modules, and matchday sections.
 - [ ] Add table and matchlist affordances for truncated content, trend explanation, withdrawn-team hints, dark mode, and CSV export.
